@@ -1,0 +1,451 @@
+.footer {
+  /* background: var(--color-background); */
+  background-color: rgb(255, 255, 255);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-12) var(--spacing-8);
+  width: 100%;
+  border-top: 1px solid rgb(232, 217, 217);
+}
+
+.footerMain {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing-10) var(--spacing-6);
+}
+
+.footerColumns {
+  display: flex;
+  gap: var(--spacing-8);
+  min-width: 400px;
+  flex-wrap: wrap;
+}
+
+.footerCol {
+  min-width: 160px;
+  flex: 1;
+}
+
+.footerColTitle {
+  font-weight: 600;
+  margin-bottom: var(--spacing-4);
+  letter-spacing: 0.025em;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.footerCol ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footerCol ul li {
+  margin-bottom: 0.7rem;
+}
+
+.footerCol ul li a {
+  color: #6c6e74;
+  text-decoration: none;
+  font-size: 0.97rem;
+  transition: color 0.2s;
+}
+
+.footerCol ul li a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+/* Newsletter Section */
+.footerNewsletter {
+  min-width: 300px;
+  margin-bottom: 2.5rem;
+}
+
+.footerNewsletter h4 {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 1.2rem;
+}
+
+.newsletterForm {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.2rem 0 0.7rem 0;
+}
+
+.newsletterInput {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-4);
+  /* border: 1px solid var(--color-border); */
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  background: var(--color-background);
+}
+
+.newsletterButton {
+  background: var(--color-text);
+  color: var(--color-background);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-3) var(--spacing-8);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-colors);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.newsletterButton:hover {
+  background: var(--color-text-secondary);
+}
+
+.privacyText {
+  font-size: 0.93rem;
+  color: #888;
+  margin-bottom: 1.7rem;
+}
+
+.privacyText a {
+  color: #3b5bdb;
+  text-decoration: underline;
+}
+
+/* Payment Section */
+.footerPaymentsBottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2.5rem 0 1.5rem 0;
+}
+
+.footerPaymentsBottom h4 {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+  letter-spacing: 1.2px;
+}
+
+.paymentIconsBottom {
+  display: grid;
+  grid-template-columns: repeat(6, 64px);
+  gap: 0.7rem 1.1rem;
+  justify-content: center;
+}
+
+.paymentIconsBottom span {
+  display: inline-block;
+  width: 64px;
+  height: 38px;
+  background: #fff;
+  border-radius: 7px;
+  margin-bottom: 0.5rem;
+  border: 1.5px solid #e5e5e5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Payment Icons Colors */
+.iconMastercard { background: #ff5f00; }
+.iconPaypal { background: #003087; }
+.iconEbay { background: #e53238; }
+.iconGpay { background: #4285f4; }
+.iconApplepay { background: #222; }
+.iconAmex { background: #2e77bb; }
+.iconAmazon { background: #ff9900; }
+.iconAlipay { background: #1677ff; }
+.iconBitcoin { background: #f7931a; }
+.iconDiscover { background: #f58220; }
+.iconWesterunion { background: #ffcc00; }
+.iconPayoneer { background: #ff4800; }
+
+/* Footer Bottom */
+.footerBottom {
+  border-top: 1px solid #e5e5e5;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footerCopyright {
+  color: #888;
+  font-size: 0.93rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.footerLegalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+  /* flex: 2 1 400px; */
+}
+
+.footerLegalLinks a {
+  color: #888;
+  text-decoration: underline !important;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: color 0.2s;
+}
+
+.footerLegalLinks a:hover {
+  color: var(--color-text);
+}
+
+/* Mobile Accordion Styles */
+.footerColHeader {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e5e5;
+  transition: background-color 0.2s ease;
+}
+
+.footerColHeader:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.accordionIcon {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+  color: #666;
+}
+
+.footerColContent,
+.newsletterContent {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Desktop Breakpoint */
+@media (min-width: 769px) {
+  .footerColContent,
+  .newsletterContent {
+    display: block !important;
+    max-height: none !important;
+    opacity: 1 !important;
+  }
+  
+  .accordionIcon {
+    display: none !important;
+  }
+}
+
+/* Tablet Breakpoint */
+@media (max-width: 1100px) {
+  .footerMain {
+    flex-direction: column;
+    gap: 2.5rem;
+    width: 100%;
+  }
+  
+  .footerColumns {
+    flex-direction: column;
+    gap: 2.5rem;
+    min-width: 0;
+  }
+  
+  .footerNewsletter {
+    margin-right: 0;
+    /* margin-top: 2rem; */
+  }
+  
+  .footerBottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+  
+  .footerLegalLinks {
+    gap: 0.7rem;
+  }
+  
+  .paymentIconsBottom {
+    grid-template-columns: repeat(4, 64px);
+  }
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 768px) {
+  .footer {
+    padding: 2rem 1.5rem;
+  }
+  
+  .footerMain {
+    gap: 1.5rem;
+    margin-bottom: 0; /* Remove margin completely */
+  }
+  
+  .footerColumns {
+    gap: 0;
+  }
+  
+  /* Newsletter section mobile spacing fix */
+  .footerNewsletter {
+    margin-bottom: 0; /* Remove margin completely */
+  }
+  
+  /* Payment section mobile spacing fix */
+  .footerPaymentsBottom {
+    margin: 1.5rem 0 1.5rem 0; /* Keep consistent spacing */
+  }
+  
+  /* Enable accordion functionality */
+  .footerColHeader {
+    display: flex !important;
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .footerColTitle {
+    margin-bottom: 0;
+    font-size: 0.95rem;
+  }
+  
+  .footerNewsletter h4 {
+    margin-bottom: 0;
+    font-size: 0.95rem;
+  }
+  
+  /* Hide content by default on mobile */
+  .footerColContent,
+  .newsletterContent {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 1rem;
+  }
+  
+  /* Show content when expanded */
+.footerColContent.expanded,
+.newsletterContent.expanded {
+    max-height: 500px;
+    opacity: 1;
+    padding: var(--spacing-4);
+  }
+  
+  /* Newsletter form responsive */
+  .newsletterForm {
+    flex-direction: column;
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+  
+  .newsletterButton {
+    padding: 0.8rem 1.5rem;
+    align-self: flex-start;
+  }
+  
+  /* Privacy text mobile spacing */
+  .privacyText {
+    margin-bottom: 0; /* Remove margin completely on mobile */
+  }
+  
+  /* Payment icons grid */
+  .paymentIconsBottom {
+    grid-template-columns: repeat(3, 56px);
+    gap: 0.5rem 0.8rem;
+  }
+  
+  .paymentIconsBottom span {
+    width: 56px;
+    height: 34px;
+  }
+  
+  /* Legal links mobile */
+  .footerLegalLinks {
+    flex-direction: column;
+    gap: 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .footerCopyright {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Footer bottom spacing */
+  .footerBottom {
+    margin-top: 2rem;
+    padding-top: 1rem;
+  }
+}
+
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+  .footer {
+    padding: 1.5rem 1rem;
+  }
+  
+  .footerMain {
+    margin-bottom: 0; /* No margin */
+  }
+  
+  .footerNewsletter {
+    margin-bottom: 0; /* No margin */
+  }
+  
+  .footerPaymentsBottom {
+    margin: 1rem 0 1rem 0; /* Minimal spacing */
+  }
+  
+  .footerColHeader {
+    margin: 0 -0.5rem;
+    padding: 0.8rem 0.5rem;
+  }
+  
+  .footerColContent.expanded,
+  .newsletterContent.expanded {
+    padding: 0.8rem 0.5rem;
+  }
+  
+  .newsletterInput {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .newsletterButton {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .paymentIconsBottom {
+    grid-template-columns: repeat(3, 50px);
+    gap: 0.4rem 0.6rem;
+  }
+  
+  .paymentIconsBottom span {
+    width: 50px;
+    height: 30px;
+  }
+  
+  .footerPaymentsBottom h4 {
+    font-size: 0.75rem;
+  }
+  
+  .footerColTitle,
+  .footerNewsletter h4 {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,430 @@
+.navbar_container {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-modal);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--color-border-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: var(--transition-shadow);
+    background-color: #fff;
+}
+
+/* Main navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: var(--spacing-3) var(--spacing-6);
+    color: var(--color-text);
+    max-width: var(--max-width-6xl);
+    margin: 0 auto;
+    min-height: 60px;
+}
+
+.nav_links {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 2rem;
+}
+
+.top_nav {
+    background-color: #ffffff;
+    padding: var(--spacing-2) var(--spacing-6);
+    color: var(--color-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-12);
+    border-bottom: 1px solid var(--color-border-light);
+    margin: 0 auto;
+}
+
+.top_nav a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    transition: var(--transition-colors);
+}
+
+.top_nav a:hover {
+    color: #ef4444;
+}
+
+.top_nav > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+}
+
+.links:hover {
+    background-color: var(--color-background-hover);
+}
+
+.links:focus {
+    background-color: #fef2f2;
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
+}
+
+.links a:focus {
+    color: #ef4444 !important;
+    outline: none;
+}
+
+.links svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.top_nav svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #4a4a4a;
+}
+
+.activeLink {
+    color: #ef4444 !important;
+    font-weight: 600;
+    position: relative;
+}
+
+.activeLink::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* Logo container */
+.logo_container {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Mobile icons container */
+.mobile_icons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.icon_button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.icon_button:hover {
+    background-color: var(--color-background-hover);
+    color: var(--color-text);
+}
+
+.cart_badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.75rem;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Mobile-specific styles */
+.mobile_top_bar {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile_brand {
+    display: flex;
+    align-items: center;
+}
+
+.hamburger_btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.hamburger_btn:hover {
+    background-color: var(--color-background-hover);
+}
+
+.hamburger_icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+}
+
+.hamburger_line {
+    display: block;
+    height: 2px;
+    width: 20px;
+    background-color: #374151;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.line_top {
+    transform: rotate(45deg) translateY(5px);
+}
+
+.line_middle {
+    opacity: 0;
+}
+
+.line_bottom {
+    transform: rotate(-45deg) translateY(-5px);
+}
+
+.mobile_menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 300px;
+    height: 100vh;
+    background-color: #fff;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.mobile_menu.menu_open {
+    right: 0;
+}
+
+.mobile_menu_content {
+    padding: 80px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mobile_menu_item {
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    color: black;
+    text-decoration: none;
+    font-size: 18px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    border-radius: 8px;
+}
+
+.mobile_menu_item:hover {
+    color: var(--color-accent);
+    background-color: #f9f9f9;
+}
+
+.mobile_menu_item:last-child {
+    border-bottom: none;
+}
+
+.cart_item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.menu_overlay.menu_open {
+    opacity: 1;
+}
+
+.search {
+    display: block;
+}
+
+/* Mobile search bar container */
+.mobile_search_container {
+    display: none;
+    flex: 1;
+    max-width: 300px;
+    margin: 0 16px;
+}
+
+.mobile_search_bar {
+    width: 100%;
+}
+
+/* Visibility helpers */
+.desktop_only {
+    display: flex;
+}
+
+.mobile_only {
+    display: none;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .desktop_only {
+        display: none !important;
+    }
+    
+    .mobile_only {
+        display: flex !important;
+    }
+    
+    .navbar {
+        padding: 12px 16px;
+        justify-content: space-between;
+        min-height: 56px;
+    }
+    
+    .logo_container {
+        flex-shrink: 0;
+    }
+    
+    .mobile_icons {
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    
+    .top_nav {
+        padding: 8px 16px;
+    }
+    
+    .icon_button {
+        padding: 12px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .hamburger_btn {
+        padding: 12px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .cart_badge {
+        font-size: 0.875rem;
+        width: 22px;
+        height: 22px;
+        top: -6px;
+        right: -6px;
+    }
+    
+    .hamburger_icon {
+        width: 28px;
+        height: 28px;
+        gap: 4px;
+    }
+    
+    .hamburger_line {
+        height: 3px;
+        width: 22px;
+    }
+
+    .mobile_search_container {
+        display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 10px 12px;
+        min-height: 52px;
+    }
+    
+    .top_nav {
+        padding: 6px 12px;
+        gap: 1.5rem;
+    }
+    
+    .mobile_menu {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .mobile_menu_content {
+        padding: 70px 16px 20px;
+    }
+    
+    .mobile_icons {
+        gap: 6px;
+    }
+    
+    .icon_button {
+        padding: 10px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .hamburger_btn {
+        padding: 10px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .logo_container img {
+        width: 30px !important;
+        height: 30px !important;
+    }
+}

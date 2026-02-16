@@ -1,0 +1,215 @@
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+  }
+  
+  .cardClickable {
+    cursor: pointer;
+  }
+  
+  .cardLink {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .cardClickable:hover,
+  .cardLink:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .cardClickable:active,
+  .cardLink:active {
+    transform: translateY(-1px);
+  }
+  
+  .cardClickable:focus,
+  .cardLink:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }
+  
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--overlay-color);
+    opacity: var(--overlay-opacity);
+    transition: opacity 0.3s ease;
+  }
+  
+  .card:hover .overlay {
+    opacity: calc(var(--overlay-opacity) + 0.1);
+  }
+  
+  .content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    text-align: center;
+    padding: 15px 25px;
+    color: white;
+    max-width: 90%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+  }
+  
+  .subContent {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    text-align: left;
+    padding: 15px 20px;
+    color: white;
+    max-width: 80%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border-radius: 6px;
+  }
+  
+  .title {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+  }
+  
+  .subtitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    opacity: 0.9;
+    letter-spacing: 0.5px;
+  }
+  
+  .description {
+    margin: 8px 0 0 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    opacity: 0.8;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .title {
+      font-size: 1.5rem;
+    }
+  
+    .subtitle {
+      font-size: 0.9rem;
+    }
+  
+    .content {
+      padding: 15px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .title {
+      font-size: 1.25rem;
+    }
+  
+    .subtitle {
+      font-size: 0.8rem;
+    }
+  
+    .content {
+      padding: 12px;
+    }
+  }
+  
+  /* Animation variants */
+  .card.fadeIn {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Size variants */
+  .small {
+    width: 200px;
+    height: 250px;
+  }
+  
+  .medium {
+    width: 300px;
+    height: 400px;
+  }
+  
+  .large {
+    width: 400px;
+    height: 500px;
+  }
+  
+  .fullWidth {
+    width: 100%;
+  }
+  
+  /* Content alignment variants */
+  .contentTop .content {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .contentBottom .content {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .contentLeft .content {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: left;
+  }
+  
+  .contentRight .content {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: right;
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .card:focus {
+      box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.5);
+    }
+  }

@@ -1,0 +1,43 @@
+.actionsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.addToCartBtn {
+  background: #ff2d17;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.9rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  flex: 1;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.addToCartBtn:hover {
+  background: #d81b04;
+}
+
+.wishlistBtn {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 7px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+.wishlistBtn:hover {
+  border: 2px solid #ff2d17;
+}
+
+.heart {
+  font-size: 1.5rem;
+} 

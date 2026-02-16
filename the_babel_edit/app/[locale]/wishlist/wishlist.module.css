@@ -1,0 +1,135 @@
+.container {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 0 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.header {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #222;
+  text-align: left;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+}
+
+.productImage {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: #f3f3f3;
+}
+
+.productTitle {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.3rem;
+  text-align: center;
+}
+
+.productBrand {
+  color: #888;
+  font-size: 0.98rem;
+  margin-bottom: 0.7rem;
+  text-align: center;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.currentPrice {
+  color: #e74c3c;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.originalPrice {
+  color: #aaa;
+  text-decoration: line-through;
+  font-size: 1rem;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.7rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.actionBtn {
+  background: #ff2d0c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.actionBtn:hover {
+  background: #e01b00;
+}
+
+.removeBtn {
+  background: #eee;
+  color: #e74c3c;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.removeBtn:hover {
+  background: #ffeaea;
+  color: #c0392b;
+}
+
+.emptyState {
+  text-align: center;
+  color: #888;
+  font-size: 1.15rem;
+  margin: 4rem 0 2rem 0;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 32px 8px 0 8px;
+  }
+  .grid {
+    gap: 1.2rem;
+  }
+} 

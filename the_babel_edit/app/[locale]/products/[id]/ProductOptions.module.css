@@ -1,0 +1,87 @@
+.optionsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.optionGroup {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #232323;
+  min-width: 60px;
+}
+
+.sizes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sizeBtn {
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.35rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #232323;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.sizeBtn.active {
+  border: 2px solid #232323;
+  background: #f5f5f5;
+}
+
+.colors {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.colorBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  outline: none;
+  transition: border 0.2s;
+}
+.colorBtn.active {
+  border: 2.5px solid #232323;
+}
+
+.quantityWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qtyBtn {
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #232323;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.qtyBtn:hover {
+  background: #f5f5f5;
+}
+
+.qtyNum {
+  font-size: 1.1rem;
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+} 

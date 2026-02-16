@@ -1,0 +1,44 @@
+# robots.txt for The Babel Edit
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /collections/*
+Allow: /products/*
+Allow: /search*
+Allow: /about
+Allow: /contact
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /_next/
+Disallow: /private/
+
+# Block search parameters that create duplicate content
+Disallow: /*?sort=*
+Disallow: /*?filter=*
+Disallow: /*&sort=*
+Disallow: /*&filter=*
+
+# Allow specific crawlers full access
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Sitemap location
+Sitemap: https://thebabeledit.com/sitemap.xml
+Sitemap: https://thebabeledit.com/sitemap-products.xml
+Sitemap: https://thebabeledit.com/sitemap-collections.xml
+
+# Crawl delay
+Crawl-delay: 1

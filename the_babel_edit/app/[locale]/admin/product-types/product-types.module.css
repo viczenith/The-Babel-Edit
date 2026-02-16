@@ -1,0 +1,372 @@
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.header p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fee;
+  border: 2px solid #f66;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  color: #c33;
+  font-weight: 500;
+}
+
+.errorAlert button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #c33;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+}
+
+/* Categories Section */
+.categoriesSection {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 1rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.btnAdd {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btnAdd:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+/* Form Styles */
+.form {
+  background: #f8f9fa;
+  border: 2px dashed #bdc3c7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form input,
+.form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form input:focus,
+.form textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  background: white;
+}
+
+.form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnSubmit {
+  flex: 1;
+  padding: 0.75rem;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnSubmit:hover {
+  background: #229954;
+  transform: translateY(-2px);
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 0.75rem;
+  background: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnCancel:hover {
+  background: #7f8c8d;
+}
+
+/* Categories List */
+.categoriesList {
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.categoryCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+  border: 3px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.categoryCard:hover {
+  background: linear-gradient(135deg, #d5dbdb, #adb5bd);
+  transform: translateX(4px);
+}
+
+.categoryCard.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-color: #2c3e50;
+  color: white;
+}
+
+.categoryInfo h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: inherit;
+}
+
+.categoryInfo p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0.8;
+}
+
+.slug {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.typeCount {
+  margin-top: 0.5rem;
+  font-size: 0.9rem !important;
+}
+
+.btnDeleteCat {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btnDeleteCat:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+.loading {
+  text-align: center;
+  color: #95a5a6;
+  padding: 2rem;
+  font-size: 0.95rem;
+}
+
+/* Types Section */
+.typesSection {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.noSelection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #95a5a6;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* Types List */
+.typesList {
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.typeCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #fff9e6, #ffe6b3);
+  border-left: 4px solid #f39c12;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.typeCard:hover {
+  background: linear-gradient(135deg, #ffecb3, #ffd699);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
+}
+
+.typeInfo h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.typeInfo p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.btnDelete {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btnDelete:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+.empty {
+  text-align: center;
+  color: #95a5a6;
+  padding: 2rem;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .categoriesList {
+    max-height: 400px;
+  }
+
+  .typesList {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 650px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .categoriesSection,
+  .typesSection {
+    padding: 1.5rem;
+  }
+
+  .btnAdd {
+    width: 100%;
+  }
+
+  .categoryCard,
+  .typeCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .btnDeleteCat,
+  .btnDelete {
+    width: 100%;
+  }
+}

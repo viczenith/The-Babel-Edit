@@ -1,0 +1,446 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String      @id @default(cuid())
+  email           String      @unique
+  password        String?     // Null for Google OAuth users
+  firstName       String?
+  lastName        String?
+  phone           String?
+  googleId        String?     @unique
+  refreshToken    String?
+  avatar          String?
+  isVerified      Boolean     @default(false)
+  isAgree         Boolean     @default(false)
+  isSuspended     Boolean     @default(false)
+  role            Role        @default(USER)
+  isPrimary       Boolean     @default(false)
+  // Relations
+  cart            Cart?
+  addresses       Address[]
+  orders          Order[]
+  reviews         Review[]
+  wishlistItems   WishlistItem[]
+  feedbacks       Feedback[]
+  superAdminTokens SuperAdminToken[]
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model SuperAdminToken {
+  id         String   @id @default(cuid())
+  tokenHash  String   // store hash of token
+  createdBy  String
+  createdByUser User   @relation(fields: [createdBy], references: [id])
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  usedBy     String?  
+  usedAt     DateTime?
+  revoked    Boolean  @default(false)
+  purpose    String?  // optional
+
+  @@map("super_admin_tokens")
+}
+
+model Collection {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  description   String?
+  imageUrl      String?
+  isActive      Boolean   @default(true)
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("collections")
+}
+
+model ProductCategory {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  slug          String    @unique
+  description   String?
+  isActive      Boolean   @default(true)
+  types         ProductType[]
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("product_categories")
+}
+
+model ProductType {
+  id            String    @id @default(cuid())
+  name          String
+  categoryId    String
+  category      ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  description   String?
+  isActive      Boolean   @default(true)
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([name, categoryId])
+  @@map("product_types")
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  comparePrice  Float?      // Original price for discounts
+  imageUrl      String
+  images        Json        // Multiple product images
+  stock         Int         @default(0)
+  sku           String?     @unique
+  threshold     Int?        // Reorder level threshold for inventory alerts
+  collectionId  String?
+  collection    Collection? @relation(fields: [collectionId], references: [id])
+  typeId        String?
+  type          ProductType? @relation(fields: [typeId], references: [id])
+  categoryId    String?
+  category      ProductCategory? @relation(fields: [categoryId], references: [id])
+  categoryName  String      @default("clothes") // Backup field for compatibility
+  sizes         Json        // Array of available sizes
+  colors        Json        // Array of available colors
+  tags          Json        // Product tags for search
+  weight        Float?      // For shipping calculations
+  dimensions    String?     // L x W x H
+  isActive      Boolean     @default(true)
+  isFeatured    Boolean     @default(false)
+  discountPercentage  Int?  // Pre-calculated discount for easier querying
+  avgRating     Float       @default(0) // Average product rating
+  reviewCount   Int         @default(0) // Total review count
+  // Relations
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+  // Timestamps
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("products")
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  size      String?
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId, size, color])
+  @@map("cart_items")
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName   String
+  lastName    String
+  company     String?
+  address1    String
+  address2    String?
+  city        String
+  state       String
+  postalCode  String
+  country     String
+  phone       String?
+  isDefault   Boolean  @default(false)
+  // Relations
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String?
+  paymentIntentId   String?       @unique // Stripe payment intent ID
+  // Amounts
+  subtotal          Float
+  tax               Float         @default(0)
+  shipping          Float         @default(0)
+  discount          Float         @default(0)
+  total             Float
+  // Shipping
+  shippingAddressId String?
+  shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id])
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  // Items
+  items             OrderItem[]
+  // Notes
+  notes             String?
+  // Lifecycle timestamps
+  cancelledAt       DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  quantity     Int
+  price        Float    // Price at time of order
+  size         String?
+  color        String?
+  productName  String   @default("") // Snapshot: product name at time of order
+  productImage String?  // Snapshot: product image at time of order
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5 stars
+  title     String?
+  comment   String?
+  isVerified Boolean @default(false) // Verified purchase
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId]) // One review per user per product
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+    @@map("wishlist_items")
+    
+  }
+  
+  model Testimonial {
+    id        String   @id @default(cuid())
+    author    String
+    text      String
+    avatar    String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+  
+      @@map("testimonials")
+    }
+    
+model Feedback {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type        FeedbackType @default(GENERAL)
+  message     String
+  pageUrl     String?
+  isResolved  Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt    
+  @@map("feedbacks")
+}
+
+model HeroSlide {
+  id            String   @id @default(cuid())
+  imageUrl      String
+  alt           String?
+  description   String?
+  position      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("hero_slides")
+}
+
+model HighlightCard {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  imageUrl      String?
+  position      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("highlight_cards")
+}
+
+model DashboardConfig {
+  id                    String   @id @default(cuid())
+  summerBannerTitle     String   @default("Summer Collection")
+  summerBannerDescription String @default("Limited time offer - Don't miss out!")
+  summerBannerButtonText String  @default("Shop Now")
+  summerBannerCountdownDays Int  @default(0)
+  summerBannerCountdownHours Int @default(0)
+  summerBannerCountdownMinutes Int @default(0)
+  summerBannerCountdownSeconds Int @default(0)
+  summerBannerBackgroundImage String?
+  landingPageBackgroundMode LandingPageBackgroundMode @default(NONE)
+  landingPageBackgroundImage String?
+  landingPageVideoUrl   String?
+  landingPageTitle      String   @default("Welcome to The Babel Edit")
+  landingPageSubtitle   String   @default("Discover Premium Fashion & Lifestyle")
+  landingPageButtonText String   @default("Shop Now")
+  landingPageButtonLink String   @default("/products")
+  landingPageOverlayOpacity Int   @default(40)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("dashboard_config")
+}
+
+model Announcement {
+  id              String            @id @default(cuid())
+  title           String
+  message         String
+  type            AnnouncementType  @default(INFO)
+  linkText        String?           // e.g. "Read More", "Shop Now"
+  linkUrl         String?           // e.g. "/products?category=sale"
+  backgroundColor String?          // Custom hex color override
+  textColor       String?           // Custom hex color override
+  isActive        Boolean           @default(true)
+  isDismissible   Boolean           @default(true)
+  priority        Int               @default(0) // Higher = shown first
+  startDate       DateTime?         // Scheduled start (null = immediately)
+  endDate         DateTime?         // Scheduled end (null = no expiry)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([isActive])
+  @@index([priority])
+  @@map("announcements")
+}
+
+enum AnnouncementType {
+  SALE
+  INFO
+  NEW_ARRIVAL
+  WARNING
+  CUSTOM
+}
+
+enum LandingPageBackgroundMode {
+  NONE
+  IMAGE
+  VIDEO
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum FeedbackType {
+  GENERAL
+  BUG
+  SUGGESTION
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model SiteSettings {
+  key        String   @id
+  value      String   // JSON string for complex values, plain string for simple ones
+  group      String   @default("general") // general, features, notifications, orders, shipping, tax
+  label      String?  // Human-readable label
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([group])
+  @@map("site_settings")
+}
+
+model AuditLog {
+  id              String   @id @default(cuid())
+  action          String   // e.g. create_product, user_login, delete_order
+  resource        String?  // e.g. Product, User, Order
+  resourceId      String?  // ID of the affected resource
+  details         String?  // JSON string of additional details
+  previousValues  String?  // JSON string of values before the change (for diffs)
+  userId          String?  // Who performed the action
+  userEmail       String?
+  userRole        String?
+  ipAddress       String?  // Request IP
+  userAgent       String?  // Request user-agent header
+  sessionId       String?  // For correlating multiple actions
+  severity        String   @default("info") // info, warning, critical
+  createdAt       DateTime @default(now())
+
+  @@index([action])
+  @@index([resource])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([severity])
+  @@index([resourceId])
+  @@map("audit_logs")
+}

@@ -1,0 +1,101 @@
+[
+  {
+    "id": "1771165344674",
+    "action": "update_product",
+    "resource": "Product",
+    "details": {
+      "productId": "cmln96uw70001dovsd4a4e2h2",
+      "name": "London Jewel",
+      "categoryName": "wearables",
+      "typeName": "Apple Smart Watch"
+    },
+    "user": {
+      "id": "cmll5ggb80001dof46epmv41w",
+      "email": "isiquedan@gmail.com",
+      "role": "ADMIN"
+    },
+    "timestamp": "2026-02-15T14:22:24.674Z"
+  },
+  {
+    "id": "1771164520297",
+    "action": "update_product",
+    "resource": "Product",
+    "details": {
+      "productId": "cmln96uw70001dovsd4a4e2h2",
+      "name": "London Jewel",
+      "categoryName": "wearables",
+      "typeName": "Apple Smart Watch"
+    },
+    "user": {
+      "id": "cmll5ggb80001dof46epmv41w",
+      "email": "isiquedan@gmail.com",
+      "role": "ADMIN"
+    },
+    "timestamp": "2026-02-15T14:08:40.297Z"
+  },
+  {
+    "id": "1771153042439",
+    "action": "create_order_from_checkout",
+    "resource": "Order",
+    "details": {
+      "orderId": "cmlnmshuw0003docgzf6capq7",
+      "total": 9744.99,
+      "itemCount": 1
+    },
+    "user": {
+      "id": "cmln9rt940000doak7oz53qlt",
+      "email": "victor@gmail.com",
+      "role": "USER"
+    },
+    "timestamp": "2026-02-15T10:57:22.439Z"
+  },
+  {
+    "id": "1771150992036",
+    "action": "create_order_from_checkout",
+    "resource": "Order",
+    "details": {
+      "orderId": "cmlnlkjsg0003dowgmjtzpw1n",
+      "total": 9729.99,
+      "itemCount": 1
+    },
+    "user": {
+      "id": "cmln9rt940000doak7oz53qlt",
+      "email": "victor@gmail.com",
+      "role": "USER"
+    },
+    "timestamp": "2026-02-15T10:23:12.036Z"
+  },
+  {
+    "id": "1771149773731",
+    "action": "create_order_from_checkout",
+    "resource": "Order",
+    "details": {
+      "orderId": "cmlnkufpa0003dojktdkp4etw",
+      "total": 9729.99,
+      "itemCount": 1
+    },
+    "user": {
+      "id": "cmln9rt940000doak7oz53qlt",
+      "email": "victor@gmail.com",
+      "role": "USER"
+    },
+    "timestamp": "2026-02-15T10:02:53.732Z"
+  },
+  {
+    "id": "1771130197815",
+    "action": "create_product",
+    "resource": "Product",
+    "details": {
+      "productId": "cmln96uw70001dovsd4a4e2h2",
+      "name": "London Jewel",
+      "categoryName": "accessories",
+      "typeName": "Jewelry"
+    },
+    "user": {
+      "id": "cmll5ggb80001dof46epmv41w",
+      "email": "isiquedan@gmail.com",
+      "role": "ADMIN"
+    },
+    "timestamp": "2026-02-15T04:36:37.815Z"
+  }
+]

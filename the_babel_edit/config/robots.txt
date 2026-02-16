@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /checkout/
+Disallow: /account/
+Disallow: /cart/
+Disallow: /search?*
+
+# Allow important pages
+Allow: /collections/
+Allow: /products/
+Allow: /about
+Allow: /contact
+Allow: /sustainability
+Allow: /size-guide
+
+# Sitemaps
+Sitemap: https://thebabeledit.com/sitemap.xml
+Sitemap: https://thebabeledit.com/sitemap-products.xml
+Sitemap: https://thebabeledit.com/sitemap-collections.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1

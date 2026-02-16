@@ -1,0 +1,105 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.spinnerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+  max-width: 300px;
+  width: 90%;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-light);
+  border-top: 3px solid var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-align: center;
+  line-height: var(--line-height-normal);
+}
+
+/* Animations */
+@keyframes spin {
+  0% { 
+    transform: rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .overlay {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .spinnerContainer {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+  
+  .message {
+    color: #f9fafb;
+  }
+  
+  .spinner {
+    border-color: #374151;
+    border-top-color: var(--color-accent);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .spinnerContainer {
+    padding: var(--spacing-6);
+    max-width: 280px;
+  }
+  
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border-width: 2.5px;
+  }
+  
+  .message {
+    font-size: var(--font-size-xs);
+  }
+}

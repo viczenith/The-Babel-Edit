@@ -1,0 +1,20 @@
+node_modules
+# Keep environment variables out of version control
+.env
+.env.local
+.env.production
+!.env.example
+/generated/prisma/uploads
+
+# Database files - NEVER commit these!
+# Always use migrations instead!
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Database backups - keep locally but don't commit
+/backups
+/backups/**
+backup.sql
+*.sql
