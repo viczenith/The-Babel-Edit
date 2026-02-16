@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
+      // Allow Render backend images in production
+      {
+        protocol: "https",
+        hostname: "*.onrender.com",
+      },
        {
         protocol: "http",
         hostname: "www.g.com",
