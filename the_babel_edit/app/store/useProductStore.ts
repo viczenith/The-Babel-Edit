@@ -85,11 +85,11 @@ const CACHE_KEYS = {
 // Error handling utility
 const handleError = (error: unknown, defaultMessage: string): string => {
   if (error instanceof Error) {
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      return 'Unable to connect to server. Please check your internet connection.';
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('aborted')) {
+      return 'Server is starting up — this may take up to 30 seconds on first visit. Please wait and try again.';
     }
     if (error.message.includes('timeout')) {
-      return 'Request timed out. Please try again.';
+      return 'Server is waking up. Please refresh the page in a few seconds.';
     }
     return error.message;
   }

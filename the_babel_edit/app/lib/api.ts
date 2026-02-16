@@ -26,7 +26,23 @@ const getApiUrl = (endpoint: string) => {
 
 export const getHealthUrl = () => getApiUrl('/health');
 
-
+// Retry helper for Render cold starts (free tier spins down after inactivity)
+const fetchWithRetry = async (url: string, config: RequestInit, retries = 2, delayMs = 3000): Promise<Response> => {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const response = await fetch(url, { ...config, signal: controller.signal });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      if (attempt === retries) throw error;
+      // Wait before retrying — server may be waking up from cold start
+      await new Promise(resolve => setTimeout(resolve, delayMs * (attempt + 1)));
+    }
+  }
+  throw new Error('Failed after retries');
+};
 
 // Server availability tracking
 let isServerAvailable = true;
@@ -98,17 +114,16 @@ export const checkServerAvailability = async (): Promise<boolean> => {
 
   try {
     const healthUrl = getHealthUrl();
-    const response = await fetch(healthUrl, {
+    const response = await fetchWithRetry(healthUrl, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
-    });
+    }, 2, 5000);
 
     // If the health endpoint responds at all the backend process is reachable.
     // Treat any HTTP response as the server being available (network reachable).
     isServerAvailable = true;
     // non-OK status is still a reachable server
   } catch (err) {
-
     isServerAvailable = false;
   }
 
@@ -225,7 +240,7 @@ export const apiRequest = async <T = any>(
 
 
   try {
-    let response = await fetch(url, requestConfig);
+    let response = await fetchWithRetry(url, requestConfig);
 
     // Handle suspension 403 separately — do NOT treat as token error
     let suspensionChecked = false;
