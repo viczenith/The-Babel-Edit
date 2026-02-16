@@ -130,8 +130,8 @@ if (process.env.NODE_ENV === 'production' && redisClient) {
 }
 
 app.use(session({
-  secret: process.env.JWT_SECRET || (() => {
-    if (process.env.NODE_ENV === 'production') throw new Error('SESSION_SECRET must be set in production');
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') throw new Error('SESSION_SECRET or ACCESS_TOKEN_SECRET must be set in production');
     return crypto.randomBytes(32).toString('hex');
   })(),
   resave: false,
