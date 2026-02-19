@@ -63,6 +63,7 @@ if (process.env.FRONTEND_URL_PRODUCTION) {
 allowedOriginsSet.add('https://www.thebabeledit.com');
 allowedOriginsSet.add('https://thebabeledit.com');
 allowedOriginsSet.add('https://the-babel-edit-dev.vercel.app');
+allowedOriginsSet.add('https://the-babel-edit.vercel.app');
 
 // Add common local dev hosts so requests from different dev ports are allowed
 if (process.env.NODE_ENV !== 'production') {
