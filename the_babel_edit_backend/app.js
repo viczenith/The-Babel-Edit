@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import crypto from 'crypto';
 import prisma from './prismaClient.js';
+import { getBaseUrl } from './utils/urlUtils.js';
 
 // Only load .env in development
 // if (process.env.NODE_ENV !== 'production') {
@@ -116,6 +117,45 @@ app.use(cookieParser());
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
+}
+
+// ── Image URL resolution middleware ──
+// Intercepts res.json() to resolve relative /uploads/ paths to full URLs
+// so images work in both development (localhost) and production (Render).
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (body && typeof body === 'object') {
+      const baseUrl = getBaseUrl(req);
+      body = resolveUploadUrls(body, baseUrl);
+    }
+    return originalJson(body);
+  };
+  next();
+});
+
+// Recursively resolve /uploads/ paths in response objects
+function resolveUploadUrls(obj, baseUrl) {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(item => resolveUploadUrls(item, baseUrl));
+  
+  const resolved = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string' && value.startsWith('/uploads/')) {
+      resolved[key] = `${baseUrl}${value}`;
+    } else if (Array.isArray(value)) {
+      resolved[key] = value.map(item => 
+        typeof item === 'string' && item.startsWith('/uploads/') 
+          ? `${baseUrl}${item}` 
+          : resolveUploadUrls(item, baseUrl)
+      );
+    } else if (value && typeof value === 'object') {
+      resolved[key] = resolveUploadUrls(value, baseUrl);
+    } else {
+      resolved[key] = value;
+    }
+  }
+  return resolved;
 }
 
 // Session configuration

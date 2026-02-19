@@ -400,7 +400,14 @@ export const updateAvatar = async (req, res) => {
       return res.status(400).json({ message: 'No image file provided.' });
     }
 
-    const avatarUrl = req.file.path;
+    // Cloudinary returns full URL in req.file.path; local storage gives filename
+    let avatarUrl;
+    if (req.file.path && req.file.path.startsWith('http')) {
+      avatarUrl = req.file.path;
+    } else {
+      const { getBaseUrl } = await import('../utils/urlUtils.js');
+      avatarUrl = `${getBaseUrl(req)}/uploads/${req.file.filename}`;
+    }
 
     const userId = getUserIdFromReq(req);
     if (!userId) {

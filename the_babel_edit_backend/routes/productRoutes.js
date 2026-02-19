@@ -1,4 +1,5 @@
 import express from 'express';
+import { getBaseUrl } from '../utils/urlUtils.js';
 import {
   getCollections,
   getCollection,
@@ -72,10 +73,8 @@ router.post('/admin/products/upload-image',
         // Cloudinary URL - use as-is
         imageUrl = req.file.path;
       } else {
-        // Local storage - construct full HTTP URL from backend
-        const protocol = req.protocol || 'http';
-        const host = req.get('host') || 'localhost:5000';
-        imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+        // Local storage - store relative path, resolve with current server URL
+        imageUrl = `${getBaseUrl(req)}/uploads/${req.file.filename}`;
       }
       const publicId = req.file.public_id || req.file.filename;
       
@@ -110,16 +109,15 @@ router.post('/admin/products/upload-images',
       return res.status(400).json({ message: 'No files uploaded' });
     }
     try {
-      const protocol = req.protocol || 'http';
-      const host = req.get('host') || 'localhost:5000';
+      const baseUrl = getBaseUrl(req);
       const images = req.files.map(file => {
         let url;
         if (file.path && file.path.startsWith('http')) {
           // Cloudinary URL - use as-is
           url = file.path;
         } else {
-          // Local storage - construct full HTTP URL from backend
-          url = `${protocol}://${host}/uploads/${file.filename}`;
+          // Local storage - resolve with current server URL
+          url = `${baseUrl}/uploads/${file.filename}`;
         }
         return {
           url,
