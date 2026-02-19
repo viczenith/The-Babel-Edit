@@ -27,12 +27,13 @@ async function main() {
 
   // Create Users
   console.log('👥 Seeding users...');
-  const hashedPassword = await bcrypt.hash('password123', 12);
+  const superAdminPassword = await bcrypt.hash('B@belSup3r!2026x', 12);
+  const adminPassword = await bcrypt.hash('B@belAdm1n!2026x', 12);
 
   const users = [
     {
-      email: 'admin@babeledit.com',
-      password: hashedPassword,
+      email: 'superadmin@thebabeledit.com',
+      password: superAdminPassword,
       firstName: 'Admin',
       lastName: 'User',
       role: 'SUPER_ADMIN',
@@ -40,8 +41,8 @@ async function main() {
       isAgree: true
     },
     {
-      email: 'isiquedan@gmail.com',
-      password: hashedPassword,
+      email: 'admin@thebabeledit.com',
+      password: adminPassword,
       firstName: 'Isaac',
       lastName: 'Dalyop',
       phone: '+2347060737799',

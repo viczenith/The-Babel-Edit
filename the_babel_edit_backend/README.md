@@ -234,13 +234,13 @@ ISC
 These accounts are created automatically when the database is seeded (after migration).
 
 **Login as SUPER_ADMIN:**
-- Email: `admin@babeledit.com`
-- Password: `password123`
+- Email: `superadmin@thebabeledit.com`
+- Password: `B@belSup3r!2026x`
 - Role: SUPER_ADMIN (system administrator)
 
 **Login as ADMIN:**
-- Email: `isiquedan@gmail.com`
-- Password: `password123`
+- Email: `admin@thebabeledit.com`
+- Password: `B@belAdm1n!2026x`
 - Role: ADMIN (product manager)
 
 ### Admin Management
