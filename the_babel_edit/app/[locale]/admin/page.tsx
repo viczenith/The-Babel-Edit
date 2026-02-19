@@ -536,15 +536,15 @@ const AdminPage = () => {
     try {
       const [ordersRes, feedbacksRes, productsRes, reviewsRes, featuredRes] = await Promise.all([
         apiRequest<{ orders: Order[] }>(API_ENDPOINTS.ORDERS.ADMIN.LIST + '?limit=999999', { requireAuth: true }),
-        apiRequest<Feedback[]>(API_ENDPOINTS.FEEDBACK.LIST, { requireAuth: true }),
+        apiRequest<any>(API_ENDPOINTS.FEEDBACK.LIST + '?limit=999999', { requireAuth: true }),
         apiRequest<{ products: Product[]; pagination: any }>(API_ENDPOINTS.PRODUCTS.ADMIN.LIST + '?limit=999999&includeInactive=true', { requireAuth: true }),
-        apiRequest<Review[]>(API_ENDPOINTS.REVIEWS.LIST, { requireAuth: true }).catch(() => []),
+        apiRequest<any>(API_ENDPOINTS.REVIEWS.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ reviews: [] })),
         apiRequest<string[]>(API_ENDPOINTS.ADMIN.TESTIMONIALS.LIST, { requireAuth: true }).catch(() => []),
       ]);
       setRawOrders(ordersRes.orders || []);
-      setRawFeedbacks(Array.isArray(feedbacksRes) ? feedbacksRes : []);
+      setRawFeedbacks(Array.isArray(feedbacksRes) ? feedbacksRes : (feedbacksRes?.feedbacks || []));
       setRawProducts(productsRes.products || []);
-      setRawReviews(Array.isArray(reviewsRes) ? reviewsRes : []);
+      setRawReviews(Array.isArray(reviewsRes) ? reviewsRes : (reviewsRes?.reviews || []));
       setRawFeaturedIds(Array.isArray(featuredRes) ? featuredRes : []);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch analytics:', error);

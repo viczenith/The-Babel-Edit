@@ -67,12 +67,12 @@ const SuperAdminPage: React.FC = () => {
       const [usersRes, ordersRes, productsRes, collectionsRes, auditRes, healthRes, reviewsRes, feedbacksRes] = await Promise.all([
         apiRequest(`${API_ENDPOINTS.USERS?.LIST || '/auth/admin/users'}?limit=999999`, { requireAuth: true }).catch(() => ({ users: [] })),
         apiRequest(`${API_ENDPOINTS.ORDERS?.ADMIN?.LIST || '/orders/admin/all'}?limit=999999`, { requireAuth: true }).catch(() => ({ orders: [] })),
-        apiRequest(`${API_ENDPOINTS.PRODUCTS?.ADMIN?.LIST || '/admin/products'}?limit=999999`, { requireAuth: true }).catch(() => ({ products: [] })),
-        apiRequest(API_ENDPOINTS.COLLECTIONS?.LIST || '/collections', { requireAuth: true }).catch(() => ({ collections: [] })),
+        apiRequest(`${API_ENDPOINTS.PRODUCTS?.ADMIN?.LIST || '/admin/products'}?limit=999999&includeInactive=true`, { requireAuth: true }).catch(() => ({ products: [] })),
+        apiRequest(`${API_ENDPOINTS.COLLECTIONS?.LIST || '/collections'}?limit=999999`, { requireAuth: true }).catch(() => ({ collections: [] })),
         apiRequest('/admin/audit-logs/stats', { requireAuth: true }).catch(() => ({ total: 0, today: 0, thisWeek: 0, thisMonth: 0 })),
         apiRequest('/health').catch(() => ({ status: 'ERROR' })),
-        apiRequest(API_ENDPOINTS.REVIEWS?.LIST || '/reviews', { requireAuth: true }).catch(() => []),
-        apiRequest(API_ENDPOINTS.FEEDBACK?.LIST || '/feedback', { requireAuth: true }).catch(() => []),
+        apiRequest(`${API_ENDPOINTS.REVIEWS?.LIST || '/reviews'}?limit=999999`, { requireAuth: true }).catch(() => ({ reviews: [] })),
+        apiRequest(`${API_ENDPOINTS.FEEDBACK?.LIST || '/feedback'}?limit=999999`, { requireAuth: true }).catch(() => ({ feedbacks: [] })),
       ]);
       setRawUsers(usersRes.users || []);
       setRawOrders(ordersRes.orders || []);

@@ -52,7 +52,7 @@ export const createReview = async (req, res) => {
 export const getReviews = async (req, res) => {
     try {
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+        const limit = Math.min(10000, Math.max(1, parseInt(req.query.limit) || 50));
         const skip = (page - 1) * limit;
 
         const [reviews, total] = await Promise.all([

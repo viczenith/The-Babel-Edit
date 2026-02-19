@@ -486,6 +486,7 @@ export const getAllOrders = async (req, res) => {
           include: {
             product: {
               select: {
+                id: true,
                 name: true,
                 imageUrl: true
               }
@@ -520,11 +521,13 @@ export const getAllOrders = async (req, res) => {
         shippingAddress: order.shippingAddress,
         items: order.items.map(item => ({
           id: item.id,
+          productId: item.productId || item.product?.id || null,
           quantity: item.quantity,
           price: item.price,
           size: item.size,
           color: item.color,
           product: {
+            id: item.product?.id || item.productId || null,
             name: item.productName || item.product?.name || 'Unknown',
             imageUrl: item.productImage || item.product?.imageUrl || null,
           }
