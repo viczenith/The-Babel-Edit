@@ -57,8 +57,8 @@ export default function ReviewsManager() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<Review[]>(API_ENDPOINTS.REVIEWS.LIST, { requireAuth: true });
-      setReviews(Array.isArray(data) ? data : []);
+      const data = await apiRequest<any>(API_ENDPOINTS.REVIEWS.LIST + '?limit=999999', { requireAuth: true });
+      setReviews(Array.isArray(data) ? data : (data?.reviews || []));
     } catch (err) {
       console.error(err);
       toast.error('Failed to load reviews');

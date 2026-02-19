@@ -15,8 +15,8 @@ export const ProductsPanel: React.FC = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await apiRequest(API_ENDPOINTS.PRODUCTS.ADMIN.LIST, { requireAuth: true });
-        setProducts(res.products || res || []);
+        const res = await apiRequest(API_ENDPOINTS.PRODUCTS.ADMIN.LIST + '?limit=999999&includeInactive=true', { requireAuth: true });
+        setProducts(res.products || []);
       } catch (err) {
         console.error('Failed fetching products', err);
       } finally {
@@ -65,8 +65,8 @@ export const OrdersPanel: React.FC = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await apiRequest(API_ENDPOINTS.ORDERS?.LIST || '/orders', { requireAuth: true });
-        setOrders(res.orders || res || []);
+        const res = await apiRequest(API_ENDPOINTS.ORDERS?.ADMIN?.LIST || '/orders/admin/all', { requireAuth: true });
+        setOrders(res.orders || []);
       } catch (err) {
         console.error('Failed fetching orders', err);
       } finally {
@@ -117,8 +117,8 @@ export const CollectionsPanel: React.FC = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await apiRequest(API_ENDPOINTS.COLLECTIONS?.LIST || '/collections', { requireAuth: true });
-        setCollections(res.collections || res || []);
+        const res = await apiRequest(API_ENDPOINTS.COLLECTIONS?.LIST + '?limit=999999' || '/collections?limit=999999', { requireAuth: true });
+        setCollections(res.collections || []);
       } catch (err) {
         console.error('Failed fetching collections', err);
       } finally {
@@ -703,7 +703,7 @@ const BackupsAndExports: React.FC = () => {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         downloadBlob(blob, `users-${dateStamp}.csv`);
       } else if (type === 'audit-logs') {
-        const res = await apiRequest<any>('/admin/audit-logs', { requireAuth: true });
+        const res = await apiRequest<any>('/admin/audit-logs?limit=10000', { requireAuth: true });
         const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
         downloadBlob(blob, `audit-logs-${dateStamp}.json`);
       } else {
@@ -713,7 +713,7 @@ const BackupsAndExports: React.FC = () => {
           apiRequest<any>('/orders/admin/all?limit=999999', { requireAuth: true }).catch(() => ({ orders: [] })),
           apiRequest<any>('/admin/products?limit=999999', { requireAuth: true }).catch(() => ({ products: [] })),
           apiRequest<any>(API_ENDPOINTS.SETTINGS?.LIST || '/admin/settings', { requireAuth: true }).catch(() => ({ settings: [] })),
-          apiRequest<any>('/admin/audit-logs', { requireAuth: true }).catch(() => ({ logs: [] })),
+          apiRequest<any>('/admin/audit-logs?limit=10000', { requireAuth: true }).catch(() => ({ logs: [] })),
         ]);
         const backup = {
           exportedAt: new Date().toISOString(),
@@ -721,7 +721,7 @@ const BackupsAndExports: React.FC = () => {
           orders: ordersRes.orders || [],
           products: productsRes.products || [],
           settings: settingsRes.settings || [],
-          auditLogs: auditRes.logs || auditRes || [],
+          auditLogs: auditRes.logs || [],
         };
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         downloadBlob(blob, `full-backup-${dateStamp}.json`);

@@ -921,7 +921,7 @@ const UsersList: React.FC = () => {
                                       userDetail.addresses.map(addr => (
                                         <div key={addr.id} className="bg-white border border-gray-200 rounded-lg p-3 space-y-1">
                                           <div className="flex items-center justify-between">
-                                            <span className="text-xs font-semibold text-gray-900 uppercase">{addr.type}</span>
+                                            <span className="text-xs font-semibold text-gray-900 uppercase">{addr.isDefault ? 'Primary' : 'Address'}</span>
                                             {addr.isDefault && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Default</span>}
                                           </div>
                                           <p className="text-xs text-gray-700">

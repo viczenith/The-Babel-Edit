@@ -55,8 +55,8 @@ export default function FeedbacksManager() {
   const fetchList = async () => {
     try {
       setLoading(true);
-      const res = await apiRequest<Feedback[]>(API_ENDPOINTS.FEEDBACK.LIST, { requireAuth: true });
-      setFeedbacks(Array.isArray(res) ? res : []);
+      const res = await apiRequest<any>(API_ENDPOINTS.FEEDBACK.LIST + '?limit=999999', { requireAuth: true });
+      setFeedbacks(Array.isArray(res) ? res : (res?.feedbacks || []));
     } catch (err) {
       console.error(err);
       toast.error('Failed to load feedback');

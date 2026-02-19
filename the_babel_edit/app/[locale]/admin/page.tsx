@@ -388,7 +388,7 @@ const AdminPage = () => {
     setInventoryLoading(true);
     try {
       // Reuse admin products endpoint to derive inventory
-      const res = await apiRequest<{ products: Product[] }>(API_ENDPOINTS.PRODUCTS.ADMIN.LIST, { requireAuth: true });
+      const res = await apiRequest<{ products: Product[] }>(API_ENDPOINTS.PRODUCTS.ADMIN.LIST + '?limit=999999&includeInactive=true', { requireAuth: true });
       const items: InventoryItem[] = (res.products || []).map(p => {
         const cat = (p as any).category;
         const catName = typeof cat === 'object' && cat !== null ? cat.name : (cat || '');
@@ -470,8 +470,8 @@ const AdminPage = () => {
         { requireAuth: true }
       );
       // Primary: use server response
-      setProducts(response.products);
-      setPagination(response.pagination);
+      setProducts(response.products || []);
+      setPagination(response.pagination || { page: 1, limit: 10, total: 0, pages: 1 });
 
       // Store all products for this category (without search filter) for suggestions
       if (!debouncedSearchTerm && adminCategory) {
@@ -535,8 +535,8 @@ const AdminPage = () => {
     setAnalyticsLoading(true);
     try {
       const [ordersRes, feedbacksRes, productsRes, reviewsRes, featuredRes] = await Promise.all([
-        apiRequest<{ orders: Order[] }>(API_ENDPOINTS.ORDERS.ADMIN.LIST + '?limit=999999', { requireAuth: true }),
-        apiRequest<any>(API_ENDPOINTS.FEEDBACK.LIST + '?limit=999999', { requireAuth: true }),
+        apiRequest<{ orders: Order[] }>(API_ENDPOINTS.ORDERS.ADMIN.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ orders: [] })),
+        apiRequest<any>(API_ENDPOINTS.FEEDBACK.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ feedbacks: [] })),
         apiRequest<{ products: Product[]; pagination: any }>(API_ENDPOINTS.PRODUCTS.ADMIN.LIST + '?limit=999999&includeInactive=true', { requireAuth: true }),
         apiRequest<any>(API_ENDPOINTS.REVIEWS.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ reviews: [] })),
         apiRequest<string[]>(API_ENDPOINTS.ADMIN.TESTIMONIALS.LIST, { requireAuth: true }).catch(() => []),
@@ -1896,6 +1896,7 @@ const AdminPage = () => {
             const avgOrderValue = orders.length > 0 ? orders.reduce((s, o) => s + (o.total || 0), 0) / orders.length : 0;
             const cancelledCount = orders.filter(o => o.status === 'CANCELLED').length;
             const shippedCount = orders.filter(o => o.status === 'SHIPPED').length;
+            const totalOrderCount = orderPagination.total || orders.length;
 
             return (
             <div className="p-3 sm:p-6">
@@ -1968,7 +1969,7 @@ const AdminPage = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="text-xs text-blue-600 font-medium">Total Orders</div>
-                    <div className="text-2xl font-bold text-blue-900 mt-1">{orders.length}</div>
+                    <div className="text-2xl font-bold text-blue-900 mt-1">{totalOrderCount}</div>
                   </div>
                   <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="text-xs text-green-600 font-medium">Delivered</div>
