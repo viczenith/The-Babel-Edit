@@ -24,10 +24,14 @@ export const generateRefreshToken = (user) => {
 
 // Set refresh token as httpOnly cookie
 export const setRefreshTokenCookie = (res, refreshToken) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    // In production, frontend (Vercel) and backend (Render) are on different domains,
+    // so we must use 'none' to allow cross-origin cookie sending.
+    // 'strict' blocks the cookie from being sent cross-origin, breaking token refresh.
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };

@@ -104,6 +104,9 @@ export const useProductCategories = (options: { includeInactive?: boolean } = {}
 
       setCategories(withIcons);
     } catch (err) {
+      // Ignore abort errors (React Strict Mode double-mount cleanup)
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (err instanceof Error && err.message.includes('aborted')) return;
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch categories';
       setError(errorMessage);
       console.error('Error fetching product categories:', err);

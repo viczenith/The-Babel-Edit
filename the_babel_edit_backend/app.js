@@ -37,6 +37,7 @@ import typeRoutes from './routes/typeRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 // Import passport config
 import './config/passport.js';
@@ -136,24 +137,31 @@ app.use((req, res, next) => {
 });
 
 // Recursively resolve /uploads/ paths in response objects
+// Optimised: skips primitives/Dates early, avoids unnecessary recursion
 function resolveUploadUrls(obj, baseUrl) {
-  if (!obj || typeof obj !== 'object') return obj;
+  if (obj === null || obj === undefined) return obj;
+  const t = typeof obj;
+  if (t !== 'object' && t !== 'string') return obj;
+  if (t === 'string') return obj.startsWith('/uploads/') ? `${baseUrl}${obj}` : obj;
+  // Preserve Date objects — don't recurse into them
+  if (obj instanceof Date) return obj;
   if (Array.isArray(obj)) return obj.map(item => resolveUploadUrls(item, baseUrl));
-  
+
   const resolved = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string' && value.startsWith('/uploads/')) {
-      resolved[key] = `${baseUrl}${value}`;
-    } else if (Array.isArray(value)) {
-      resolved[key] = value.map(item => 
-        typeof item === 'string' && item.startsWith('/uploads/') 
-          ? `${baseUrl}${item}` 
-          : resolveUploadUrls(item, baseUrl)
-      );
-    } else if (value && typeof value === 'object') {
-      resolved[key] = resolveUploadUrls(value, baseUrl);
-    } else {
+    if (value === null || value === undefined) {
       resolved[key] = value;
+    } else if (typeof value === 'string') {
+      resolved[key] = value.startsWith('/uploads/') ? `${baseUrl}${value}` : value;
+    } else if (typeof value !== 'object') {
+      // number, boolean, bigint — pass through
+      resolved[key] = value;
+    } else if (value instanceof Date) {
+      resolved[key] = value;
+    } else if (Array.isArray(value)) {
+      resolved[key] = value.map(item => resolveUploadUrls(item, baseUrl));
+    } else {
+      resolved[key] = resolveUploadUrls(value, baseUrl);
     }
   }
   return resolved;
@@ -176,17 +184,20 @@ if (process.env.NODE_ENV === 'production' && redisClient) {
   sessionStore = new RedisStore({ client: redisClient });
 }
 
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(session({
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET || (() => {
-    if (process.env.NODE_ENV === 'production') throw new Error('SESSION_SECRET or ACCESS_TOKEN_SECRET must be set in production');
+    if (isProduction) throw new Error('SESSION_SECRET or ACCESS_TOKEN_SECRET must be set in production');
     return crypto.randomBytes(32).toString('hex');
   })(),
   resave: false,
   saveUninitialized: false,
   store: sessionStore, // memory store when undefined
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     httpOnly: true,
+    // Cross-origin (Vercel↔Render) requires 'none'; local dev uses 'lax'
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
@@ -314,6 +325,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api', dashboardRoutes); // Dashboard routes mounted under /api (now /api/dashboard/* and /api/admin/dashboard/*)
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/types', typeRoutes); // Product types and categories management
 

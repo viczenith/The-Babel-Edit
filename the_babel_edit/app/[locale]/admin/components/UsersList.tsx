@@ -118,7 +118,7 @@ const formatDate = (d: string): string => {
 };
 
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(v);
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
 const statusColor = (s: string) => {
   const map: Record<string, string> = {
@@ -170,8 +170,8 @@ const UsersList: React.FC = () => {
     userId: string; userName: string; currentRole: string; newRole: string;
   } | null>(null);
 
-  /* ── stats (computed from current page + pagination total) ── */
-  const [allUsersForStats, setAllUsersForStats] = useState<ApiUser[]>([]);
+  /* ── stats (fetched from lightweight stats endpoint) ── */
+  const [userStats, setUserStats] = useState<{ total: number; customers: number; admins: number; superAdmins: number; suspended: number }>({ total: 0, customers: 0, admins: 0, superAdmins: 0, suspended: 0 });
 
   /* ═══════════════ Data fetching ═══════════════ */
   const fetchUsers = useCallback(async (page = 1) => {
@@ -198,14 +198,22 @@ const UsersList: React.FC = () => {
     }
   }, [debouncedSearch, roleFilter, sortField, sortOrder, pagination.limit]);
 
-  // Fetch stats (all users count by role)
+  // Fetch stats (lightweight endpoint — no full user list)
   const fetchStats = useCallback(async () => {
     try {
-      const res = await apiRequest<{ users: ApiUser[]; pagination: Pagination }>(
-        `${API_ENDPOINTS.USERS.LIST}?limit=999999`,
+      const res = await apiRequest<any>(
+        API_ENDPOINTS.USERS.STATS,
         { requireAuth: true }
       );
-      setAllUsersForStats(res.users || []);
+      const roleMap: Record<string, number> = {};
+      (res.usersByRole || []).forEach((r: any) => { roleMap[r.role] = r.count || r._count || 0; });
+      setUserStats({
+        total: res.totalUsers || 0,
+        customers: roleMap['USER'] || 0,
+        admins: roleMap['ADMIN'] || 0,
+        superAdmins: roleMap['SUPER_ADMIN'] || 0,
+        suspended: 0, // stats endpoint doesn't return suspended count; will use pagination total as fallback
+      });
     } catch {
       // silently fail — stats are not critical
     }
@@ -214,16 +222,7 @@ const UsersList: React.FC = () => {
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => { fetchUsers(1); }, [debouncedSearch, roleFilter, sortField, sortOrder]);
 
-  const stats = useMemo(() => {
-    const list = allUsersForStats;
-    return {
-      total: list.length,
-      customers: list.filter(u => u.role === 'USER' || !u.role).length,
-      admins: list.filter(u => u.role === 'ADMIN').length,
-      superAdmins: list.filter(u => u.role === 'SUPER_ADMIN').length,
-      suspended: list.filter(u => u.isSuspended).length,
-    };
-  }, [allUsersForStats]);
+  const stats = userStats;
 
   /* ═══════════════ User detail ═══════════════ */
   const toggleDetail = async (userId: string) => {
@@ -289,7 +288,6 @@ const UsersList: React.FC = () => {
       toast.success(res.isSuspended ? 'User suspended' : 'User unsuspended');
       // Update local state
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, isSuspended: res.isSuspended } : u));
-      setAllUsersForStats(prev => prev.map(u => u.id === userId ? { ...u, isSuspended: res.isSuspended } : u));
       if (userDetail?.id === userId) setUserDetail(d => d ? { ...d, isSuspended: res.isSuspended } : d);
     } catch (err: any) {
       toast.error(err?.message || 'Failed to toggle suspension');
@@ -307,7 +305,6 @@ const UsersList: React.FC = () => {
       );
       toast.success(res.isVerified ? 'User verified' : 'User unverified');
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, isVerified: res.isVerified } : u));
-      setAllUsersForStats(prev => prev.map(u => u.id === userId ? { ...u, isVerified: res.isVerified } : u));
       if (userDetail?.id === userId) setUserDetail(d => d ? { ...d, isVerified: res.isVerified } : d);
     } catch (err: any) {
       toast.error(err?.message || 'Failed to toggle verification');

@@ -36,6 +36,8 @@ const fetchWithRetry = async (url: string, config: RequestInit, retries = 2, del
       clearTimeout(timeoutId);
       return response;
     } catch (error) {
+      // If the request was aborted (e.g. React Strict Mode unmount), don't retry — just throw
+      if (error instanceof DOMException && error.name === 'AbortError') throw error;
       if (attempt === retries) throw error;
       // Wait before retrying — server may be waking up from cold start
       await new Promise(resolve => setTimeout(resolve, delayMs * (attempt + 1)));
@@ -96,7 +98,7 @@ const setCookie = (name: string, value: string, days = 7) => {
 
   // Only use secure flag in production (HTTPS)
   const secureFlag = isDevelopment() ? '' : ';secure';
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;samesite=strict${secureFlag}`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;samesite=lax${secureFlag}`;
 };
 
 const deleteCookie = (name: string) => {

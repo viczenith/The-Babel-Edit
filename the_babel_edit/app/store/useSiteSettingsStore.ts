@@ -85,8 +85,8 @@ interface SiteSettingsState {
 const DEFAULT_SETTINGS: SiteSettings = {
   store_name: 'The Babel Edit',
   store_contact_email: 'support@babeledit.com',
-  store_currency: 'GBP',
-  store_timezone: 'Europe/London',
+  store_currency: 'USD',
+  store_timezone: 'America/New_York',
   store_tagline: '',
   store_description: '',
   store_phone: '',

@@ -284,12 +284,12 @@ const StoreConfiguration: React.FC<{
     setLocalValues({
       store_name: settings.store_name || '',
       store_contact_email: settings.store_contact_email || '',
-      store_currency: settings.store_currency || 'GBP',
-      store_timezone: settings.store_timezone || 'Europe/London',
+      store_currency: settings.store_currency || 'USD',
+      store_timezone: settings.store_timezone || 'America/New_York',
     });
   }, [settings]);
 
-  const currencies = ['GBP', 'USD', 'EUR', 'CAD', 'AUD', 'JPY', 'CHF', 'NGN'];
+  const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'NGN'];
   const timezones = [
     'Europe/London', 'America/New_York', 'America/Chicago', 'America/Denver',
     'America/Los_Angeles', 'Europe/Paris', 'Europe/Berlin', 'Asia/Tokyo',
@@ -340,7 +340,7 @@ const StoreConfiguration: React.FC<{
         <label className="block text-xs font-medium text-gray-700 mb-1">Currency</label>
         <select
           className="w-full p-2 border rounded text-sm"
-          value={localValues.store_currency || 'GBP'}
+          value={localValues.store_currency || 'USD'}
           onChange={e => { setLocalValues(prev => ({ ...prev, store_currency: e.target.value })); onUpdate('store_currency', e.target.value); }}
           disabled={saving === 'store_currency'}
         >

@@ -29,15 +29,9 @@ const SuperAdminPage: React.FC = () => {
   const [headerHeight, setHeaderHeight] = useState<number>(0);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  // Overview Analytics State — raw data + period toggle
+  // Overview Analytics State — pre-computed from backend
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [rawUsers, setRawUsers] = useState<any[]>([]);
-  const [rawOrders, setRawOrders] = useState<any[]>([]);
-  const [rawProducts, setRawProducts] = useState<any[]>([]);
-  const [rawCollections, setRawCollections] = useState<any[]>([]);
-  const [auditStats, setAuditStats] = useState<{ total: number; today: number; thisWeek: number; thisMonth: number; thisYear: number } | null>(null);
-  const [rawReviews, setRawReviews] = useState<any[]>([]);
-  const [rawFeedbacks, setRawFeedbacks] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [systemHealth, setSystemHealth] = useState<{ ok: boolean; details?: any } | null>(null);
   const [overviewPeriod, setOverviewPeriod] = useState<'today' | 'week' | 'month' | 'year' | 'lifetime'>('month');
 
@@ -60,30 +54,16 @@ const SuperAdminPage: React.FC = () => {
     };
   }, []);
 
-  // Fetch raw data — all computation done in useMemo
+  // Fetch pre-computed analytics from backend
   const fetchAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
-      const [usersRes, ordersRes, productsRes, collectionsRes, auditRes, healthRes, reviewsRes, feedbacksRes] = await Promise.all([
-        apiRequest(`${API_ENDPOINTS.USERS?.LIST || '/auth/admin/users'}?limit=999999`, { requireAuth: true }).catch(() => ({ users: [] })),
-        apiRequest(`${API_ENDPOINTS.ORDERS?.ADMIN?.LIST || '/orders/admin/all'}?limit=999999`, { requireAuth: true }).catch(() => ({ orders: [] })),
-        apiRequest(`${API_ENDPOINTS.PRODUCTS?.ADMIN?.LIST || '/admin/products'}?limit=999999&includeInactive=true`, { requireAuth: true }).catch(() => ({ products: [] })),
-        apiRequest(`${API_ENDPOINTS.COLLECTIONS?.LIST || '/collections'}?limit=999999`, { requireAuth: true }).catch(() => ({ collections: [] })),
-        apiRequest('/admin/audit-logs/stats', { requireAuth: true }).catch(() => ({ total: 0, today: 0, thisWeek: 0, thisMonth: 0 })),
+      const [analyticsRes, healthRes] = await Promise.all([
+        apiRequest(`/admin/analytics?period=${overviewPeriod}`, { requireAuth: true }).catch(() => null),
         apiRequest('/health').catch(() => ({ status: 'ERROR' })),
-        apiRequest(`${API_ENDPOINTS.REVIEWS?.LIST || '/reviews'}?limit=999999`, { requireAuth: true }).catch(() => ({ reviews: [] })),
-        apiRequest(`${API_ENDPOINTS.FEEDBACK?.LIST || '/feedback'}?limit=999999`, { requireAuth: true }).catch(() => ({ feedbacks: [] })),
       ]);
-      setRawUsers(usersRes.users || []);
-      setRawOrders(ordersRes.orders || []);
-      setRawProducts(productsRes.products || []);
-      setRawCollections(collectionsRes.collections || []);
-      setAuditStats(auditRes || { total: 0, today: 0, thisWeek: 0, thisMonth: 0 });
-      // Health returns { status: 'OK' } not { ok: true }
+      setAnalyticsData(analyticsRes);
       setSystemHealth({ ok: healthRes?.status === 'OK', details: healthRes });
-      // Reviews & Feedback return bare arrays, not wrapped objects
-      setRawReviews(Array.isArray(reviewsRes) ? reviewsRes : (reviewsRes.reviews || []));
-      setRawFeedbacks(Array.isArray(feedbacksRes) ? feedbacksRes : (feedbacksRes.feedbacks || feedbacksRes.feedback || []));
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
     } finally {
@@ -93,109 +73,46 @@ const SuperAdminPage: React.FC = () => {
 
   useEffect(() => {
     if (section === 'overview') fetchAnalytics();
-  }, [section]);
+  }, [section, overviewPeriod]);
 
-  // ── Period-aware computed metrics ──
+  // ── Metrics from backend response ──
   const overviewMetrics = useMemo(() => {
-    const now = new Date();
-    const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
-    const startOfWeek = new Date(startOfDay); startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-
-    const periodStart = overviewPeriod === 'today' ? startOfDay
-      : overviewPeriod === 'week' ? startOfWeek
-      : overviewPeriod === 'month' ? startOfMonth
-      : overviewPeriod === 'year' ? startOfYear
-      : new Date(0); // lifetime
-
-    const inPeriod = (dateStr: string) => new Date(dateStr) >= periodStart;
-
-    // Orders
-    const periodOrders = rawOrders.filter(o => inPeriod(o.createdAt));
-    const completedPeriod = periodOrders.filter(o => o.status !== 'CANCELLED');
-    const periodRevenue = completedPeriod.reduce((s, o) => s + (o.total || 0), 0);
-    const periodOrderCount = periodOrders.length;
-    const periodAOV = completedPeriod.length > 0 ? periodRevenue / completedPeriod.length : 0;
-
-    // Unique customers in period
-    const customerEmails = new Set(periodOrders.map(o => o.user?.email || o.userId).filter(Boolean));
-    const periodCustomers = customerEmails.size;
-
-    // Order status breakdown
-    const breakdown: Record<string, number> = {};
-    periodOrders.forEach(o => { const s = o.status || 'UNKNOWN'; breakdown[s] = (breakdown[s] || 0) + 1; });
-
-    // Always-current stats
-    const pendingOrders = rawOrders.filter(o => o.status === 'PENDING').length;
-    const totalUsers = rawUsers.length;
-    const adminCount = rawUsers.filter(u => ['ADMIN', 'SUPER_ADMIN'].includes(u.role)).length;
-    const superAdminCount = rawUsers.filter(u => u.role === 'SUPER_ADMIN').length;
-    const customerUserCount = rawUsers.filter(u => u.role === 'USER' || !u.role).length;
-    const totalProducts = rawProducts.length;
-    const activeProducts = rawProducts.filter(p => p.isActive).length;
-    const lowStock = rawProducts.filter(p => p.stock < 10 && p.isActive).sort((a, b) => a.stock - b.stock).slice(0, 8);
-    const totalCollections = rawCollections.length;
-
-    // Audit logs from stats endpoint
-    const periodAuditCount = overviewPeriod === 'today' ? (auditStats?.today || 0)
-      : overviewPeriod === 'week' ? (auditStats?.thisWeek || 0)
-      : overviewPeriod === 'month' ? (auditStats?.thisMonth || 0)
-      : overviewPeriod === 'year' ? (auditStats?.thisYear || 0)
-      : (auditStats?.total || 0);
-
-    // Top customers in period
-    const custMap: Record<string, { email: string; name: string; spent: number; orders: number }> = {};
-    periodOrders.forEach(o => {
-      const email = o.user?.email || 'Guest';
-      const name = o.user?.firstName ? `${o.user.firstName} ${o.user.lastName || ''}`.trim() : email;
-      if (!custMap[email]) custMap[email] = { email, name, spent: 0, orders: 0 };
-      custMap[email].spent += o.total || 0;
-      custMap[email].orders += 1;
-    });
-    const topCustomers = Object.values(custMap).sort((a, b) => b.spent - a.spent).slice(0, 5);
-
-    // Top products by revenue in period
-    const prodMap: Record<string, { product: any; quantity: number; revenue: number }> = {};
-    periodOrders.forEach(o => {
-      (o.items || []).forEach((item: any) => {
-        // Admin orders may have productId at item level or nested under item.product.id
-        const pid = item.productId || item.product?.id;
-        if (pid) {
-          if (!prodMap[pid]) {
-            const prod = rawProducts.find(p => p.id === pid) || item.product || {};
-            prodMap[pid] = { product: { id: pid, name: prod.name || 'Unknown', ...prod }, quantity: 0, revenue: 0 };
-          }
-          prodMap[pid].quantity += item.quantity || 1;
-          prodMap[pid].revenue += (item.price || 0) * (item.quantity || 1);
-        }
-      });
-    });
-    const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
-      .map(p => ({ ...p.product, revenue: p.revenue, quantity: p.quantity }));
-
-    // Recent orders in period
-    const recentOrders = [...periodOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
-
-    // Reviews & Feedback in period
-    const periodReviewCount = rawReviews.filter(r => inPeriod(r.createdAt)).length;
-    const periodFeedbackCount = rawFeedbacks.filter(f => inPeriod(f.createdAt)).length;
-    const unresolvedFeedback = rawFeedbacks.filter(f => !f.isResolved && !f.resolved).length;
-
-    // Conversion rate
-    const conversionRate = totalUsers > 0 ? (periodCustomers / totalUsers * 100) : 0;
+    if (!analyticsData) return {
+      periodRevenue: 0, periodOrderCount: 0, periodCustomers: 0, periodAOV: 0,
+      breakdown: {} as Record<string, number>, pendingOrders: 0,
+      totalUsers: 0, adminCount: 0, superAdminCount: 0, customerUserCount: 0,
+      totalProducts: 0, activeProducts: 0, lowStock: [] as any[], totalCollections: 0,
+      periodAuditCount: 0, totalAuditLogs: 0,
+      topCustomers: [] as any[], topProducts: [] as any[], recentOrders: [] as any[],
+      conversionRate: 0, periodReviewCount: 0, periodFeedbackCount: 0, unresolvedFeedback: 0,
+    };
 
     return {
-      periodRevenue, periodOrderCount, periodCustomers, periodAOV,
-      breakdown, pendingOrders,
-      totalUsers, adminCount, superAdminCount, customerUserCount,
-      totalProducts, activeProducts, lowStock, totalCollections,
-      periodAuditCount, totalAuditLogs: auditStats?.total || 0,
-      topCustomers, topProducts, recentOrders,
-      conversionRate,
-      periodReviewCount, periodFeedbackCount, unresolvedFeedback,
+      periodRevenue: analyticsData.periodRevenue || 0,
+      periodOrderCount: analyticsData.periodOrderCount || 0,
+      periodCustomers: analyticsData.periodCustomers || 0,
+      periodAOV: analyticsData.periodAOV || 0,
+      breakdown: (analyticsData.breakdown || {}) as Record<string, number>,
+      pendingOrders: analyticsData.pendingOrders || 0,
+      totalUsers: analyticsData.totalUsers || 0,
+      adminCount: analyticsData.adminCount || 0,
+      superAdminCount: analyticsData.superAdminCount || 0,
+      customerUserCount: analyticsData.customerUserCount || 0,
+      totalProducts: analyticsData.totalProducts || 0,
+      activeProducts: analyticsData.activeProducts || 0,
+      lowStock: (analyticsData.lowStock || []) as any[],
+      totalCollections: analyticsData.totalCollections || 0,
+      periodAuditCount: analyticsData.periodAuditCount || 0,
+      totalAuditLogs: analyticsData.auditStats?.total || 0,
+      topCustomers: (analyticsData.topCustomers || []) as any[],
+      topProducts: (analyticsData.topProducts || []) as any[],
+      recentOrders: (analyticsData.recentOrders || []) as any[],
+      conversionRate: analyticsData.conversionRate || 0,
+      periodReviewCount: analyticsData.periodReviewCount || 0,
+      periodFeedbackCount: analyticsData.periodFeedbackCount || 0,
+      unresolvedFeedback: analyticsData.unresolvedFeedback || 0,
     };
-  }, [rawUsers, rawOrders, rawProducts, rawCollections, auditStats, rawReviews, rawFeedbacks, overviewPeriod]);
+  }, [analyticsData]);
 
   const periodLabel = overviewPeriod === 'today' ? "Today's"
     : overviewPeriod === 'week' ? "This Week's"

@@ -61,7 +61,7 @@ const AnnouncementManager = () => {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.LIST);
+      const data = await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.LIST, { requireAuth: true });
       setAnnouncements(data.announcements || []);
     } catch {
       toast.error('Failed to load announcements');
@@ -130,13 +130,15 @@ const AnnouncementManager = () => {
       if (isCreating) {
         await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, {
           method: 'POST',
-          body: JSON.stringify(payload),
+          body: payload,
+          requireAuth: true,
         });
         toast.success('Announcement created!');
       } else if (editingId) {
         await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(editingId), {
           method: 'PUT',
-          body: JSON.stringify(payload),
+          body: payload,
+          requireAuth: true,
         });
         toast.success('Announcement updated!');
       }
@@ -154,6 +156,7 @@ const AnnouncementManager = () => {
     try {
       await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.TOGGLE(id), {
         method: 'PATCH',
+        requireAuth: true,
       });
       await fetchAnnouncements();
       toast.success('Announcement toggled');
@@ -166,6 +169,7 @@ const AnnouncementManager = () => {
     try {
       await apiRequest(API_ENDPOINTS.ANNOUNCEMENTS.DELETE(id), {
         method: 'DELETE',
+        requireAuth: true,
       });
       setDeleteConfirm(null);
       await fetchAnnouncements();

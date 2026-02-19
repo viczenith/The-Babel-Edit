@@ -68,7 +68,7 @@ const setCookie = (name: string, value: string, days = 7) => {
   expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
   const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
   const secureFlag = isSecure ? ';secure' : '';
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/${secureFlag};samesite=strict`;
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/${secureFlag};samesite=lax`;
 };
 
 const deleteCookie = (name: string) => {

@@ -195,12 +195,9 @@ const AdminPage = () => {
     hard: false
   });
 
-  // Analytics state — raw data, period-aware computed metrics
+  // Analytics state — pre-computed from backend + featured IDs
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [rawOrders, setRawOrders] = useState<Order[]>([]);
-  const [rawFeedbacks, setRawFeedbacks] = useState<Feedback[]>([]);
-  const [rawProducts, setRawProducts] = useState<Product[]>([]);
-  const [rawReviews, setRawReviews] = useState<Review[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [rawFeaturedIds, setRawFeaturedIds] = useState<string[]>([]);
   const [overviewPeriod, setOverviewPeriod] = useState<'today' | 'week' | 'month'>('month');
 
@@ -285,7 +282,7 @@ const AdminPage = () => {
     } else if (activeTab === 'inventory') {
       fetchInventory();
     }
-  }, [pagination.page, debouncedSearchTerm, activeTab, adminCategory, isAdmin, authLoading, orderStatusFilter, orderCustomerSearch, orderDateRange, orderPage]);
+  }, [pagination.page, debouncedSearchTerm, activeTab, adminCategory, isAdmin, authLoading, orderStatusFilter, orderCustomerSearch, orderDateRange, orderPage, overviewPeriod]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -534,97 +531,51 @@ const AdminPage = () => {
   const fetchAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
-      const [ordersRes, feedbacksRes, productsRes, reviewsRes, featuredRes] = await Promise.all([
-        apiRequest<{ orders: Order[] }>(API_ENDPOINTS.ORDERS.ADMIN.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ orders: [] })),
-        apiRequest<any>(API_ENDPOINTS.FEEDBACK.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ feedbacks: [] })),
-        apiRequest<{ products: Product[]; pagination: any }>(API_ENDPOINTS.PRODUCTS.ADMIN.LIST + '?limit=999999&includeInactive=true', { requireAuth: true }),
-        apiRequest<any>(API_ENDPOINTS.REVIEWS.LIST + '?limit=999999', { requireAuth: true }).catch(() => ({ reviews: [] })),
+      const [analyticsRes, featuredRes] = await Promise.all([
+        apiRequest<any>(`/admin/analytics?period=${overviewPeriod}`, { requireAuth: true }).catch(() => null),
         apiRequest<string[]>(API_ENDPOINTS.ADMIN.TESTIMONIALS.LIST, { requireAuth: true }).catch(() => []),
       ]);
-      setRawOrders(ordersRes.orders || []);
-      setRawFeedbacks(Array.isArray(feedbacksRes) ? feedbacksRes : (feedbacksRes?.feedbacks || []));
-      setRawProducts(productsRes.products || []);
-      setRawReviews(Array.isArray(reviewsRes) ? reviewsRes : (reviewsRes?.reviews || []));
+      setAnalyticsData(analyticsRes);
       setRawFeaturedIds(Array.isArray(featuredRes) ? featuredRes : []);
     } catch (error) {
+      // Ignore abort errors (React Strict Mode double-mount cleanup)
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (error instanceof Error && error.message.includes('aborted')) return;
       if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch analytics:', error);
     } finally {
       setAnalyticsLoading(false);
     }
   };
 
-  // Period-aware computed metrics
+  // Metrics from backend response
   const overviewMetrics = useMemo(() => {
-    const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-    const weekStart = new Date(todayStart); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const periodStart = overviewPeriod === 'today' ? todayStart : overviewPeriod === 'week' ? weekStart : monthStart;
-    const isInPeriod = (dateStr: string) => new Date(dateStr) >= periodStart;
-
-    // Period-filtered orders (exclude cancelled for revenue/AOV)
-    const periodOrders = rawOrders.filter(o => isInPeriod(o.createdAt));
-    const periodNonCancelled = periodOrders.filter(o => o.status !== 'CANCELLED');
-    const periodRevenue = periodNonCancelled.reduce((s, o) => s + (o.total || 0), 0);
-    const periodAOV = periodNonCancelled.length > 0 ? periodRevenue / periodNonCancelled.length : 0;
-    const periodCustomers = new Set(periodOrders.map(o => o.user?.id).filter(Boolean)).size;
-
-    // Order status breakdown (period)
-    const breakdown: Record<string, number> = {};
-    periodOrders.forEach(o => { const s = o.status || 'UNKNOWN'; breakdown[s] = (breakdown[s] || 0) + 1; });
-
-    // Pending orders (always current, not period-filtered)
-    const pendingOrders = rawOrders.filter(o => o.status === 'PENDING' || o.status === 'PROCESSING').length;
-
-    // Feedback in period
-    const periodFeedbacks = rawFeedbacks.filter(f => isInPeriod(f.createdAt));
-    const unresolvedFeedback = rawFeedbacks.filter(f => !f.isResolved).length;
-
-    // Reviews in period
-    const periodReviews = rawReviews.filter(r => isInPeriod(r.createdAt));
-
-    // Low stock (always current)
-    const lowStock = rawProducts.filter(p => p.stock < 10 && p.isActive).slice(0, 5);
-
-    // Recent orders in period (last 5)
-    const recentOrders = [...periodOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
-
-    // Top products in period
-    const productMap: Record<string, { product: Product; quantity: number; revenue: number }> = {};
-    periodNonCancelled.forEach(o => {
-      (o as any).items?.forEach((item: any) => {
-        const pid = item.productId || item.product?.id;
-        if (pid) {
-          if (!productMap[pid]) {
-            const prod = rawProducts.find(p => p.id === pid) || item.product;
-            productMap[pid] = { product: prod || ({} as Product), quantity: 0, revenue: 0 };
-          }
-          productMap[pid].quantity += item.quantity || 1;
-          productMap[pid].revenue += (item.price || 0) * (item.quantity || 1);
-        }
-      });
-    });
-    const topProducts = Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5).map(p => ({ ...p.product, revenue: p.revenue, quantity: p.quantity }));
+    if (!analyticsData) return {
+      periodOrders: 0, periodRevenue: 0, periodAOV: 0, periodCustomers: 0,
+      breakdown: {} as Record<string, number>, pendingOrders: 0,
+      periodFeedbackCount: 0, unresolvedFeedback: 0,
+      periodReviewCount: 0, featuredReviewCount: rawFeaturedIds.length,
+      totalProducts: 0, activeProducts: 0, lowStock: [] as any[],
+      recentOrders: [] as any[], topProducts: [] as any[],
+    };
 
     return {
-      periodOrders: periodNonCancelled.length,
-      periodRevenue,
-      periodAOV,
-      periodCustomers,
-      breakdown,
-      pendingOrders,
-      periodFeedbackCount: periodFeedbacks.length,
-      unresolvedFeedback,
-      periodReviewCount: periodReviews.length,
+      periodOrders: analyticsData.periodOrderCount || 0,
+      periodRevenue: analyticsData.periodRevenue || 0,
+      periodAOV: analyticsData.periodAOV || 0,
+      periodCustomers: analyticsData.periodCustomers || 0,
+      breakdown: (analyticsData.breakdown || {}) as Record<string, number>,
+      pendingOrders: analyticsData.pendingOrders || 0,
+      periodFeedbackCount: analyticsData.periodFeedbackCount || 0,
+      unresolvedFeedback: analyticsData.unresolvedFeedback || 0,
+      periodReviewCount: analyticsData.periodReviewCount || 0,
       featuredReviewCount: rawFeaturedIds.length,
-      totalProducts: rawProducts.length,
-      activeProducts: rawProducts.filter(p => p.isActive).length,
-      lowStock,
-      recentOrders,
-      topProducts,
+      totalProducts: analyticsData.totalProducts || 0,
+      activeProducts: analyticsData.activeProducts || 0,
+      lowStock: (analyticsData.lowStock || []) as any[],
+      recentOrders: (analyticsData.recentOrders || []) as any[],
+      topProducts: (analyticsData.topProducts || []) as any[],
     };
-  }, [rawOrders, rawFeedbacks, rawProducts, rawReviews, rawFeaturedIds, overviewPeriod]);
+  }, [analyticsData, rawFeaturedIds]);
 
   const periodLabel = overviewPeriod === 'today' ? "Today's" : overviewPeriod === 'week' ? "This Week's" : "This Month's";
 
@@ -1493,8 +1444,8 @@ const AdminPage = () => {
                       </div>
                       {Object.keys(overviewMetrics.breakdown).length > 0 ? (
                         <div className="space-y-2.5">
-                          {Object.entries(overviewMetrics.breakdown).map(([status, count]) => {
-                            const total = Object.values(overviewMetrics.breakdown).reduce((a, b) => a + b, 1);
+                          {Object.entries(overviewMetrics.breakdown).map(([status, count]: [string, number]) => {
+                            const total = Object.values(overviewMetrics.breakdown).reduce((a: number, b: number) => a + b, 1);
                             const pct = Math.round((count / total) * 100);
                             const colorMap: Record<string, string> = {
                               PENDING: 'bg-yellow-500', PROCESSING: 'bg-blue-500', SHIPPED: 'bg-indigo-500',
@@ -1579,7 +1530,7 @@ const AdminPage = () => {
                       </div>
                       {overviewMetrics.lowStock.length > 0 ? (
                         <div className="space-y-2">
-                          {overviewMetrics.lowStock.map((product) => (
+                          {overviewMetrics.lowStock.map((product: any) => (
                             <div key={product.id} className="flex items-center justify-between p-2.5 bg-red-50/60 border border-red-100 rounded-lg">
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
@@ -1613,7 +1564,7 @@ const AdminPage = () => {
                       </div>
                       {overviewMetrics.recentOrders.length > 0 ? (
                         <div className="space-y-2">
-                          {overviewMetrics.recentOrders.map((order) => {
+                          {overviewMetrics.recentOrders.map((order: any) => {
                             const statusColors: Record<string, string> = {
                               PENDING: 'bg-yellow-100 text-yellow-800', PROCESSING: 'bg-blue-100 text-blue-800',
                               SHIPPED: 'bg-indigo-100 text-indigo-800', DELIVERED: 'bg-emerald-100 text-emerald-800',
@@ -1663,7 +1614,7 @@ const AdminPage = () => {
                         </button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        {overviewMetrics.topProducts.map((product, idx) => (
+                        {overviewMetrics.topProducts.map((product: any, idx: number) => (
                           <div key={product.id} className="p-3 border border-gray-100 rounded-lg hover:border-gray-200 transition-colors">
                             <div className="flex items-center justify-between mb-2">
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${

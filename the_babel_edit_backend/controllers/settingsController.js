@@ -7,8 +7,8 @@ const DEFAULT_SETTINGS = [
   // General / Store
   { key: 'store_name',        value: 'The Babel Edit', group: 'general',       label: 'Store Name' },
   { key: 'store_contact_email', value: '',              group: 'general',       label: 'Contact Email' },
-  { key: 'store_currency',    value: 'GBP',             group: 'general',       label: 'Currency' },
-  { key: 'store_timezone',    value: 'Europe/London',    group: 'general',       label: 'Timezone' },
+  { key: 'store_currency',    value: 'USD',             group: 'general',       label: 'Currency' },
+  { key: 'store_timezone',    value: 'America/New_York', group: 'general',       label: 'Timezone' },
 
   // Feature Toggles
   { key: 'maintenance_mode',       value: 'false', group: 'features', label: 'Maintenance Mode' },
