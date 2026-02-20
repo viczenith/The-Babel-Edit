@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { IMAGES } from './constants/constants';
 import styles from './landing.module.css';
 import Footer from './components/features/Footer/Footer';
+import { resolveImageUrl } from './utils/imageUrl';
 import { useParams, useRouter } from 'next/navigation';
 import { apiRequest, API_ENDPOINTS } from './lib/api';
 import { toast } from 'react-hot-toast';
@@ -137,7 +138,7 @@ export default function LandingPage() {
               loop
               playsInline
               preload="auto"
-              poster={landingData.landingPageBackgroundImage || undefined}
+              poster={landingData.landingPageBackgroundImage ? resolveImageUrl(landingData.landingPageBackgroundImage) : undefined}
               className="absolute inset-0 w-full h-full object-cover scale-[1.02] transition-transform duration-[2000ms]"
               style={{ filter: 'brightness(0.95)' }}
               onError={(e) => {
@@ -151,8 +152,8 @@ export default function LandingPage() {
                 (e.target as HTMLVideoElement).play().catch(() => {});
               }}
             >
-              <source src={landingData.landingPageVideoUrl} type="video/mp4" />
-              <source src={landingData.landingPageVideoUrl} type="video/webm" />
+              <source src={resolveImageUrl(landingData.landingPageVideoUrl)} type="video/mp4" />
+              <source src={resolveImageUrl(landingData.landingPageVideoUrl)} type="video/webm" />
               Your browser does not support the video tag.
             </video>
 
@@ -160,7 +161,7 @@ export default function LandingPage() {
             {landingData.landingPageBackgroundImage && (
               <img
                 id="hero-video-fallback"
-                src={landingData.landingPageBackgroundImage}
+                src={resolveImageUrl(landingData.landingPageBackgroundImage)}
                 alt="Landing page background fallback"
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ display: 'none' }}
@@ -224,7 +225,7 @@ export default function LandingPage() {
           <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image */}
             <img
-              src={landingData.landingPageBackgroundImage}
+              src={resolveImageUrl(landingData.landingPageBackgroundImage)}
               alt="Landing page background"
               className="absolute inset-0 w-full h-full object-cover"
             />
