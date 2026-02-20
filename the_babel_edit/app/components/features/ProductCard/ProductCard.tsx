@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { useCartStore, useWishlistStore, useProductStore, Product } from '@/app/store';
 import { toast } from 'react-hot-toast';
+import { isBackendImageUrl, resolveImageUrl } from '@/app/utils/imageUrl';
 
 interface ProductCardProps {
     product: Product;
@@ -92,12 +93,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const isOutOfStock = product.stock === 0;
 
-  // Check if image is from localhost and use proxy
+  // Resolve image URL for display (handles relative /uploads/ paths & backend detection)
   const imageUrl = getImageUrl();
-  const isBackendImage = imageUrl?.includes('localhost') || imageUrl?.includes('127.0.0.1');
-  const proxiedImageUrl = isBackendImage 
-    ? `/api/image?url=${encodeURIComponent(imageUrl)}`
-    : imageUrl;
+  const isBackendImage = isBackendImageUrl(imageUrl);
+  const displayImageUrl = resolveImageUrl(imageUrl, '/placeholder-product.jpg');
 
   // State for image load error fallback
   const [imageError, setImageError] = React.useState(false);
@@ -148,18 +147,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
         >
           <div className="cursor-pointer relative w-full h-full flex items-center justify-center bg-gray-100">
             {!imageError ? (
-              <Image
-                src={proxiedImageUrl}
-                alt={product.name}
-                fill
-                className={imageClasses}
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                priority={false}
-                unoptimized={isBackendImage}
-                onError={(e) => {
-                  setImageError(true);
-                }}
-              />
+              isBackendImage ? (
+                // Backend images: use regular <img> to avoid Next.js Image domain restrictions
+                <img
+                  src={displayImageUrl}
+                  alt={product.name}
+                  className={`absolute inset-0 w-full h-full ${imageClasses}`}
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <Image
+                  src={displayImageUrl}
+                  alt={product.name}
+                  fill
+                  className={imageClasses}
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  priority={false}
+                  onError={() => setImageError(true)}
+                />
+              )
             ) : (
               <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 gap-2">
                 <div className="text-3xl text-gray-400">📷</div>

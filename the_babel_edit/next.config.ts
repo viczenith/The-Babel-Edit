@@ -48,7 +48,11 @@ const nextConfig: NextConfig = {
       // Allow Render backend images in production
       {
         protocol: "https",
-        hostname: "*.onrender.com",
+        hostname: "the-babel-edit-backend-vv75.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.onrender.com",
       },
        {
         protocol: "http",

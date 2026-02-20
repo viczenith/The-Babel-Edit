@@ -2925,6 +2925,11 @@ const AdminPage = () => {
 
                       // Refresh products to show the new product immediately
                       await fetchProducts();
+
+                      // If product is featured, invalidate featured cache so dashboard picks it up
+                      if (payload.isFeatured) {
+                        try { localStorage.removeItem('babel_edit_products_featured'); } catch (_) {}
+                      }
                     } catch (err) {
                       console.error('Create product failed', err);
                       toast.error((err as any)?.message || 'Failed to create product');
@@ -3147,9 +3152,14 @@ const AdminPage = () => {
                             <div className="w-14 h-14 relative rounded-lg border shrink-0 overflow-hidden bg-gray-100">
                               {item.product?.imageUrl ? (
                                 <img
-                                  src={item.product.imageUrl.includes('localhost') || item.product.imageUrl.includes('127.0.0.1')
-                                    ? `/api/image?url=${encodeURIComponent(item.product.imageUrl)}`
-                                    : item.product.imageUrl}
+                                  src={(() => {
+                                    const url = item.product.imageUrl;
+                                    const API_HOST = process.env.NEXT_PUBLIC_API_URL || '';
+                                    const origin = API_HOST ? new URL(API_HOST).origin : '';
+                                    if (url.startsWith('/uploads/')) return origin ? `${origin}${url}` : url;
+                                    if (url.includes('localhost') || url.includes('127.0.0.1')) return `/api/image?url=${encodeURIComponent(url)}`;
+                                    return url;
+                                  })()}
                                   alt={item.product?.name || 'Product'}
                                   className="w-full h-full object-cover"
                                 />

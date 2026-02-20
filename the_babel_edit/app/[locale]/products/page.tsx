@@ -25,6 +25,8 @@ import {
 
 const ProductsPage = () => {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'en';
   const category = searchParams.get('category');
   const search = searchParams.get('search');
 
@@ -43,18 +45,20 @@ const ProductsPage = () => {
 
   const [sortBy, setSortBy] = useState<SortByType>('newest');
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
-  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+
+  // Track mount state to prevent hydration mismatches with Radix Dialog IDs
+  useEffect(() => { setMounted(true); }, []);
 
   // Load product categories dynamically from API
   const { categories: productCategories, loading: categoriesLoading } = useProductCategories();
 
   const router = useRouter();
-  const pathname = usePathname();
 
   const [filterOptionsBackend, setFilterOptionsBackend] = useState<any>({});
   const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
@@ -134,10 +138,7 @@ const ProductsPage = () => {
         // Backend returns { priceRange, filterGroups }
         if (data && data.filterGroups) {
           setFilterOptionsBackend(data);
-          // Set initial price range only once (don't update on re-filters)
-          if (data.priceRange) {
-            setPriceRange(prev => prev || { min: data.priceRange.min, max: data.priceRange.max });
-          }
+
         }
       } catch (err) {
         console.error('Failed to load filter options', err);
@@ -151,15 +152,14 @@ const ProductsPage = () => {
     return () => { mounted = false; };
   }, [category, selectedType, selectedColor]);
 
-  // CLIENT-SIDE FILTERING — only COLOR, SIZE, and PRICE (TYPE is handled by backend)
+  // CLIENT-SIDE FILTERING — only COLOR and SIZE (TYPE is handled by backend)
   const filteredProducts = useMemo(() => {
     let sourceProducts = search ? searchResults : products;
     const hasColorFilter = (activeFilters.color?.length ?? 0) > 0;
     const hasSizeFilter = (activeFilters.size?.length ?? 0) > 0;
-    const hasPriceFilter = priceRange && (priceRange.min > 0 || priceRange.max > 0);
 
     // If no client-side filters active, return all products
-    if (!hasColorFilter && !hasSizeFilter && !hasPriceFilter) {
+    if (!hasColorFilter && !hasSizeFilter) {
       return sourceProducts;
     }
 
@@ -184,15 +184,9 @@ const ProductsPage = () => {
         if (!matchesSize) return false;
       }
 
-      // PRICE filter
-      if (hasPriceFilter && priceRange) {
-        if (priceRange.min > 0 && product.price < priceRange.min) return false;
-        if (priceRange.max > 0 && product.price > priceRange.max) return false;
-      }
-
       return true;
     });
-  }, [products, searchResults, search, activeFilters, priceRange]);
+  }, [products, searchResults, search, activeFilters]);
 
   // Apply sorting to filtered products
   const sortedProducts = useMemo(() => {
@@ -289,7 +283,6 @@ const ProductsPage = () => {
 
   const clearAllFilters = useCallback(() => {
     setActiveFilters({});
-    setPriceRange(null);
     setCurrentPage(1);
   }, []);
 
@@ -379,10 +372,8 @@ const ProductsPage = () => {
   }, [search, category, productCategories]);
 
   const activeFilterCount = useMemo(() => {
-    let count = Object.values(activeFilters).reduce((total, values) => total + values.length, 0);
-    if (priceRange?.min || priceRange?.max) count++;
-    return count;
-  }, [activeFilters, priceRange]);
+    return Object.values(activeFilters).reduce((total, values) => total + values.length, 0);
+  }, [activeFilters]);
   
   const currentCategoryFilters = useMemo(() => {
     // Return filter groups from backend, ordered: Type → Color → Size → Price
@@ -399,9 +390,29 @@ const ProductsPage = () => {
     return [];
   }, [filterOptionsBackend]);
 
-  // Determine which filter sections should be shown based on cascade state
-  const shouldShowColorFilter = selectedType !== '';
-  const shouldShowSizeFilter = selectedType !== '';
+  // Extract individual filter groups from backend data
+  const typeFilterGroup = useMemo(() =>
+    filterOptionsBackend?.filterGroups?.find((g: any) => g.key === 'type') || null
+  , [filterOptionsBackend]);
+  const colorFilterGroup = useMemo(() =>
+    filterOptionsBackend?.filterGroups?.find((g: any) => g.key === 'color') || null
+  , [filterOptionsBackend]);
+  const sizeFilterGroup = useMemo(() =>
+    filterOptionsBackend?.filterGroups?.find((g: any) => g.key === 'size') || null
+  , [filterOptionsBackend]);
+
+  // Map common color names to hex values for swatches
+  const getColorHex = useCallback((colorName: string): string => {
+    const map: Record<string, string> = {
+      black: '#000000', white: '#ffffff', red: '#ef4444', blue: '#3b82f6',
+      green: '#22c55e', yellow: '#eab308', pink: '#ec4899', purple: '#a855f7',
+      orange: '#f97316', brown: '#92400e', gray: '#6b7280', grey: '#6b7280',
+      navy: '#1e3a5f', beige: '#f5f5dc', cream: '#fffdd0', gold: '#ffd700',
+      silver: '#c0c0c0', teal: '#14b8a6', coral: '#ff7f50', maroon: '#800000',
+      olive: '#808000', tan: '#d2b48c', ivory: '#fffff0', khaki: '#f0e68c',
+    };
+    return map[colorName.toLowerCase()] || '#9ca3af';
+  }, []);
 
   const filterContent = (
     <>
@@ -422,118 +433,35 @@ const ProductsPage = () => {
           Updating filters...
         </div>
       )}
-      
-      {currentCategoryFilters.map((filterGroup: any, groupIndex: number) => {
-        // Handle price range filter separately — always at the bottom
-        if (filterGroup.key === 'price' && filterGroup.type === 'range') {
-          const minPrice = priceRange?.min ?? filterGroup.min ?? 0;
-          const maxPrice = priceRange?.max ?? filterGroup.max ?? 1000;
-          
-          return (
-            <div key={groupIndex} className={styles.filterSection}>
-              <div 
-                className={`${styles.filterTitle} ${expandedSections[filterGroup.title] ? styles.expanded : ''}`}
-                onClick={() => toggleFilterSection(filterGroup.title)}
-              >
-                {filterGroup.title}
-                {(priceRange?.min !== null || priceRange?.max !== null) && (
-                  <span className={styles.filterCount}>
-                    (${minPrice} - ${maxPrice})
-                  </span>
-                )}
-              </div>
-              <div className={`${styles.filterOptions} ${expandedSections[filterGroup.title] ? styles.expanded : ''}`}>
-                <div className={styles.priceRangeContainer}>
-                  <div className={styles.priceInputs}>
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={minPrice}
-                      onChange={(e) => setPriceRange({ 
-                        min: parseInt(e.target.value) || filterGroup.min, 
-                        max: maxPrice
-                      })}
-                      className={styles.priceInput}
-                    />
-                    <span>-</span>
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={maxPrice}
-                      onChange={(e) => setPriceRange({ 
-                        min: minPrice,
-                        max: parseInt(e.target.value) || filterGroup.max 
-                      })}
-                      className={styles.priceInput}
-                    />
-                  </div>
-                  <input
-                    type="range"
-                    min={filterGroup.min || 0}
-                    max={filterGroup.max || 1000}
-                    value={minPrice}
-                    onChange={(e) => setPriceRange({ 
-                      min: parseInt(e.target.value), 
-                      max: maxPrice
-                    })}
-                    className={styles.priceSlider}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        }
 
-        // Cascade visibility:
-        // - TYPE: always visible when available
-        // - COLOR: only visible when a TYPE is selected
-        // - SIZE: only visible when a TYPE is selected
-        if (filterGroup.key === 'color' && !shouldShowColorFilter) {
-          return null;
-        }
-        if (filterGroup.key === 'size' && !shouldShowSizeFilter) {
-          return null;
-        }
-
-        // Handle regular filters (Type, Color, Size)
-        const currentValues = activeFilters[filterGroup.key] || [];
-        const isExpanded = expandedSections[filterGroup.title] ?? true;
-        const isSingleSelect = filterGroup.key === 'type' || filterGroup.key === 'color';
-        
-        return (
-          <div key={groupIndex} className={styles.filterSection}>
-            <div 
-              className={`${styles.filterTitle} ${isExpanded ? styles.expanded : ''}`}
-              onClick={() => toggleFilterSection(filterGroup.title)}
-            >
-              {filterGroup.title}
-              {currentValues.length > 0 && (
-                <span className={styles.filterCount}>
-                  {isSingleSelect ? `(${currentValues[0]})` : `(${currentValues.length})`}
-                </span>
-              )}
-              {filterGroup.key !== 'type' && filterOptionsLoading && (
-                <span style={{ marginLeft: '4px', fontSize: '11px', color: '#9ca3af' }}>↻</span>
-              )}
-            </div>
-            <div className={`${styles.filterOptions} ${isExpanded ? styles.expanded : ''}`}>
-              {filterGroup.options && filterGroup.options.map((option: any, optionIndex: number) => {
-                const isChecked = currentValues.includes(option.value);
-                const isDisabled = !option.available;
-                return (
-                  <div key={optionIndex} className={styles.filterOption}>
+      {/* ── TYPE FILTER — All types visible, inline colors & sizes below selected ── */}
+      {typeFilterGroup && typeFilterGroup.options?.length > 0 && (
+        <div className={styles.filterSection}>
+          <div
+            className={`${styles.filterTitle} ${(expandedSections['Type'] ?? true) ? styles.expanded : ''}`}
+            onClick={() => toggleFilterSection('Type')}
+          >
+            Type
+            {selectedType && (
+              <span className={styles.filterCount}>({selectedType})</span>
+            )}
+          </div>
+          <div className={`${styles.filterOptions} ${(expandedSections['Type'] ?? true) ? styles.expanded : ''}`}>
+            {typeFilterGroup.options.map((option: any) => {
+              const isChecked = selectedType === option.value;
+              return (
+                <div key={option.value} className={styles.typeOptionWrapper}>
+                  <div className={`${styles.filterOption} ${isChecked ? styles.filterOptionActive : ''}`}>
                     <input
-                      type={isSingleSelect ? 'radio' : 'checkbox'}
-                      id={`${filterGroup.key}-${option.value}`}
-                      name={isSingleSelect ? filterGroup.key : undefined}
+                      type="radio"
+                      id={`type-${option.value}`}
+                      name="type"
                       checked={isChecked}
-                      onChange={() => handleFilterChange(filterGroup.key, option.value)}
-                      disabled={isDisabled}
+                      onChange={() => handleFilterChange('type', option.value)}
                     />
-                    <label 
-                      htmlFor={`${filterGroup.key}-${option.value}`}
-                      className={`${isChecked ? styles.checkedLabel : ''} ${isDisabled ? styles.disabledLabel : ''}`}
-                      title={isDisabled ? 'Not available in current selection' : ''}
+                    <label
+                      htmlFor={`type-${option.value}`}
+                      className={isChecked ? styles.checkedLabel : ''}
                     >
                       {option.label}
                       {option.count !== undefined && (
@@ -541,28 +469,84 @@ const ProductsPage = () => {
                       )}
                     </label>
                   </div>
-                );
-              })}
-              {filterGroup.key === 'type' && currentValues.length > 0 && (
-                <div style={{ marginTop: '6px', fontSize: '12px', color: '#3b82f6', cursor: 'pointer' }}
-                  onClick={() => {
-                    setActiveFilters(prev => {
-                      const newFilters = { ...prev };
-                      delete newFilters['type'];
-                      delete newFilters['color'];
-                      delete newFilters['size'];
-                      return newFilters;
-                    });
-                    setCurrentPage(1);
-                  }}
-                >
-                  ✕ Clear type filter
+
+                  {/* Inline colors & sizes for this selected type */}
+                  {isChecked && (
+                    <div className={styles.inlineSubFilters}>
+                      {/* Colors */}
+                      {colorFilterGroup && colorFilterGroup.options?.length > 0 && (
+                        <>
+                          <div className={styles.inlineSubTitle}>Colors</div>
+                          <div className={styles.colorSwatchRow}>
+                            {colorFilterGroup.options.map((color: any) => {
+                              const colorActive = activeFilters.color?.includes(color.value);
+                              return (
+                                <button
+                                  key={color.value}
+                                  className={`${styles.colorSwatch} ${colorActive ? styles.colorSwatchActive : ''} ${!color.available ? styles.colorSwatchDisabled : ''}`}
+                                  onClick={() => handleFilterChange('color', color.value)}
+                                  disabled={!color.available}
+                                  title={`${color.label} (${color.count})`}
+                                >
+                                  <span
+                                    className={styles.colorDot}
+                                    style={{ backgroundColor: getColorHex(color.value) }}
+                                  />
+                                  <span className={styles.colorName}>{color.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Sizes */}
+                      {sizeFilterGroup && sizeFilterGroup.options?.length > 0 && (
+                        <>
+                          <div className={`${styles.inlineSubTitle} ${colorFilterGroup?.options?.length ? styles.inlineSubTitleSpaced : ''}`}>Sizes</div>
+                          <div className={styles.sizePillGrid}>
+                            {sizeFilterGroup.options.map((size: any) => {
+                              const sizeActive = activeFilters.size?.includes(size.value);
+                              return (
+                                <button
+                                  key={size.value}
+                                  className={`${styles.sizePill} ${sizeActive ? styles.sizePillActive : ''} ${!size.available ? styles.sizePillDisabled : ''}`}
+                                  onClick={() => handleFilterChange('size', size.value)}
+                                  disabled={!size.available}
+                                  title={size.available ? `${size.label} (${size.count})` : 'Not available'}
+                                >
+                                  {size.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
+            {selectedType && (
+              <div className={styles.clearTypeBtn}
+                onClick={() => {
+                  setActiveFilters(prev => {
+                    const newFilters = { ...prev };
+                    delete newFilters['type'];
+                    delete newFilters['color'];
+                    delete newFilters['size'];
+                    return newFilters;
+                  });
+                  setCurrentPage(1);
+                }}
+              >
+                ✕ Clear type filter
+              </div>
+            )}
           </div>
-        );
-      })}
+        </div>
+      )}
+
     </>
   );
 
@@ -570,10 +554,13 @@ const ProductsPage = () => {
     <div className={styles.pageBg}>
       <NavbarWithSuspense />
       
+      {/* Announcement Banner — forcefully shows announcement bg color */}
+      <AnnouncementBar variant="banner" locale={locale} />
+
       <div className={styles.catalogHeader}>
         <div className={styles.catalogTitleBox}>
           <div className={styles.catalogTitle}>{getCategoryTitle()}</div>
-          <AnnouncementBar variant="inline" className={styles.catalogSubtitle} />
+          {/* <AnnouncementBar variant="inline" className={styles.catalogSubtitle} locale={locale} /> */}
         </div>
       </div>
 
@@ -605,6 +592,7 @@ const ProductsPage = () => {
                 {loading ? 'Refreshing...' : '🔄 Refresh'}
               </button>
               <div className="md:hidden">
+                {mounted && (
                 <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                   <DialogTrigger asChild>
                     <button className={styles.clearFiltersButton}>
@@ -618,6 +606,7 @@ const ProductsPage = () => {
                     {filterContent}
                   </DialogContent>
                 </Dialog>
+                )}
               </div>
               {activeFilterCount > 0 && (
                 <button 

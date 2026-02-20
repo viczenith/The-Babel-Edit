@@ -116,7 +116,7 @@ const EditProductPage = () => {
     try {
       const formData = new FormData();
       for (const file of Array.from(files)) {
-        formData.append('files', file);
+        formData.append('images', file);
       }
 
       const response = await apiRequest<{ images: { url: string }[] }>(
@@ -218,6 +218,10 @@ const EditProductPage = () => {
       });
 
       toast.success('Product updated successfully!');
+      
+      // Invalidate featured products cache so dashboard reflects changes
+      try { localStorage.removeItem('babel_edit_products_featured'); } catch (_) {}
+      
       router.push(`/${locale}/admin`);
     } catch (error: any) {
       console.error('Error updating product:', error);

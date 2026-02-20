@@ -1,30 +1,14 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { isBackendImageUrl, resolveImageUrl as resolveImgUrl } from '@/app/utils/imageUrl';
 
 interface ProductImageGalleryProps {
   images: { src: string; alt: string }[];
 }
 
-const isBackendImage = (url: string): boolean => {
-  try {
-    const u = new URL(url);
-    return (
-      u.hostname === 'localhost' ||
-      u.hostname === '127.0.0.1' ||
-      u.hostname === '::1'
-    );
-  } catch {
-    return false;
-  }
-};
-
-/** Proxy local backend images through the /api/image route to avoid CORS / optimisation issues */
+/** Resolve image URLs for display — handles /uploads/ paths and backend detection */
 const resolveImageUrl = (url: string): string => {
-  if (!url) return '/images/babel_logo_black.jpg';
-  if (isBackendImage(url)) {
-    return `/api/image?url=${encodeURIComponent(url)}`;
-  }
-  return url;
+  return resolveImgUrl(url, '/images/babel_logo_black.jpg');
 };
 
 const PLACEHOLDER = '/images/babel_logo_black.jpg';
@@ -52,7 +36,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
   }
 
   const mainSrc = getSrc(images[selectedIdx].src);
-  const useUnoptimized = isBackendImage(images[selectedIdx].src);
+  const mainIsBackend = isBackendImageUrl(images[selectedIdx].src);
 
   return (
     <div className="flex flex-col-reverse md:flex-row gap-6">
@@ -60,7 +44,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
       <div className="flex flex-row md:flex-col gap-4 overflow-x-auto">
         {images.map((img, idx) => {
           const thumbSrc = getSrc(img.src);
-          const thumbUnoptimized = isBackendImage(img.src);
+          const thumbIsBackend = isBackendImageUrl(img.src);
           return (
             <div
               key={img.src + idx}
@@ -69,15 +53,23 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
               }`}
               onClick={() => setSelectedIdx(idx)}
             >
-              <Image
-                src={thumbSrc}
-                alt={img.alt}
-                width={60}
-                height={80}
-                unoptimized={thumbUnoptimized}
-                onError={() => handleImageError(img.src)}
-                className="w-full h-full object-cover"
-              />
+              {thumbIsBackend ? (
+                <img
+                  src={thumbSrc}
+                  alt={img.alt}
+                  onError={() => handleImageError(img.src)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={thumbSrc}
+                  alt={img.alt}
+                  width={60}
+                  height={80}
+                  onError={() => handleImageError(img.src)}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
           );
         })}
@@ -85,15 +77,23 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
 
       {/* Main Image */}
       <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white w-full aspect-350/420 relative">
-        <Image
-          src={mainSrc}
-          alt={images[selectedIdx].alt}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          unoptimized={useUnoptimized}
-          onError={() => handleImageError(images[selectedIdx].src)}
-          className="w-full h-full object-cover"
-        />
+        {mainIsBackend ? (
+          <img
+            src={mainSrc}
+            alt={images[selectedIdx].alt}
+            onError={() => handleImageError(images[selectedIdx].src)}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <Image
+            src={mainSrc}
+            alt={images[selectedIdx].alt}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={() => handleImageError(images[selectedIdx].src)}
+            className="w-full h-full object-cover"
+          />
+        )}
       </div>
     </div>
   );

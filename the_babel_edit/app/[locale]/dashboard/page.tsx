@@ -32,6 +32,7 @@ interface Testimonial {
 
 // Your original components would be imported here
 import NavbarWithSuspense from '@/app/components/features/Navbar/NavbarWithSuspense'
+import AnnouncementBar from '@/app/components/features/AnnouncementBar/AnnouncementBar';
 import Carousel from '@/app/components/features/Carousel/Carousel';
 import FeedbackCarousel from '@/app/components/features/FeedbackCarousel/FeedbackCarousel';
 import Footer from '@/app/components/features/Footer/Footer';
@@ -47,6 +48,18 @@ const TextDivider = ({ text }: { text: string }) => (
   </div>
 );
 
+const API_HOST = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/?$/, '');
+
+/** Check if an image URL points to our backend (local dev or Render production) */
+const isBackendImageUrl = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  if (url.includes('/uploads/')) return true;
+  if (url.includes('localhost:5000')) return true;
+  if (url.includes('.onrender.com')) return true;
+  if (API_HOST && url.startsWith(API_HOST)) return true;
+  return false;
+};
+
 const TransparentImageCard = ({ backgroundImage, title, subtitle, description, className }: {
   backgroundImage: string;
   title: string;
@@ -54,8 +67,8 @@ const TransparentImageCard = ({ backgroundImage, title, subtitle, description, c
   description: string;
   className: string;
 }) => {
-  // Check if image is from backend (localhost or internal)
-  const isBackendUrl = backgroundImage && (backgroundImage.includes('localhost:5000') || backgroundImage.includes('/uploads/'));
+  // Check if image is from backend
+  const isBackendUrl = isBackendImageUrl(backgroundImage);
   
   return (
     <div className={`relative group overflow-hidden rounded-xl ${className}`}>
@@ -177,107 +190,118 @@ const SquareProductCard = ({ product }: { product: Product }) => {
 
   return (
     <div
-      className="flex-shrink-0 w-72 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
+      className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-72 rounded-2xl bg-white shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-pointer snap-center"
+      style={{ transform: 'translateZ(0)' }}
       onClick={handleProductClick}
     >
       {/* Square Image Container */}
-      <div className="relative w-full h-72 overflow-hidden">
+      <div className="relative w-full aspect-square overflow-hidden">
         {(() => {
-          // Check if image is from backend (localhost or internal)
           const imageUrl = product.imageUrl || product.images?.[0] || '/placeholder-product.jpg';
-          const isBackendUrl = imageUrl && (imageUrl.includes('localhost:5000') || imageUrl.includes('/uploads/'));
-          
+          const isBackendUrl = isBackendImageUrl(imageUrl);
+
           return isBackendUrl ? (
-            // Use regular img for backend URLs
             <img
               src={imageUrl}
               alt={product.name || 'Product image'}
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
-              }}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-product.jpg'; }}
             />
           ) : (
-            // Use Next.js Image for external URLs
             <Image
               src={imageUrl}
               alt={product.name || 'Product image'}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             />
           );
         })()}
+
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Discount badge */}
         {product.isActive && product.discountPercentage > 0 && (
-          <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-lg text-sm font-semibold">
-            -{product.discountPercentage}%
-          </div>
-        )}
-        {product.isFeatured && (
-          <div className="absolute top-3 right-3 bg-yellow-500 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-            Featured
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-lg tracking-wide">
+            -{product.discountPercentage}% OFF
           </div>
         )}
 
-        {/* Wishlist Button */}
+        {/* Featured badge */}
+        {product.isFeatured && !(product.isActive && product.discountPercentage > 0) && (
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+            <Star className="w-3 h-3 fill-white" /> Featured
+          </div>
+        )}
+
+        {/* Wishlist Button — always visible on mobile, hover on desktop */}
         <button
           onClick={handleToggleWishlist}
-          className="absolute top-3 right-3 bg-white bg-opacity-90 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:shadow-lg"
+          className={`absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-md border border-white/30 shadow-lg transition-all duration-300 hover:scale-110 ${
+            isProductInWishlist
+              ? 'bg-pink-500/90 opacity-100'
+              : 'bg-white/80 opacity-100 md:opacity-0 group-hover:opacity-100'
+          }`}
         >
-          <Heart className={`w-4 h-4 ${isProductInWishlist ? 'fill-pink-500 text-pink-500' : 'text-gray-700'}`} />
+          <Heart className={`w-4 h-4 transition-colors duration-300 ${
+            isProductInWishlist ? 'fill-white text-white' : 'text-gray-700'
+          }`} />
         </button>
 
-        {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={isProductInCart}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ShoppingBag className="w-5 h-5 text-gray-900" />
-        </button>
+        {/* Quick Add to Cart — slides up from bottom on hover */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
+          <button
+            onClick={handleAddToCart}
+            disabled={isProductInCart}
+            className="w-full py-3 bg-black/80 backdrop-blur-md text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            {isProductInCart ? 'In Cart' : 'Quick Add'}
+          </button>
+        </div>
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
-        <div className="mb-2">
-          <h3 className="font-semibold text-gray-900 text-lg line-clamp-2 mb-1">
+      <div className="p-4 space-y-2">
+        <div>
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-gray-700 transition-colors">
             {product.name}
           </h3>
           {product.collection && (
-            <p className="text-xs text-gray-500">{product.collection.name}</p>
+            <p className="text-[11px] text-gray-400 mt-0.5 uppercase tracking-wider">{product.collection.name}</p>
           )}
         </div>
 
         {/* Rating */}
         {product.avgRating > 0 && (
-          <div className="flex items-center gap-1 mb-2">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-xs text-gray-600">{product.avgRating}</span>
-            <span className="text-xs text-gray-400">({product.reviewCount})</span>
+          <div className="flex items-center gap-1">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3 h-3 ${
+                    i < Math.round(product.avgRating)
+                      ? 'fill-amber-400 text-amber-400'
+                      : 'fill-gray-200 text-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] text-gray-500 ml-1">({product.reviewCount})</span>
           </div>
         )}
 
         {/* Price */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-baseline gap-2">
           <span className="font-bold text-gray-900 text-lg">
             ${product.price}
           </span>
           {product.comparePrice && (
-            <span className="text-sm text-gray-400 line-through">
+            <span className="text-xs text-gray-400 line-through">
               ${product.comparePrice}
             </span>
           )}
         </div>
-
-        {/* Stock Status */}
-        {/* <div className="mt-2">
-        <span className={`text-xs px-2 py-1 rounded-full ${
-          product.isInStock 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {product.isInStock ? 'In Stock' : 'Out of Stock'}
-        </span>
-      </div> */}
       </div>
     </div>
   );
@@ -289,14 +313,15 @@ const ArrowButton = ({ direction, onClick, className }: {
 }) => (
   <button
     onClick={onClick}
-    className={`absolute top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow ${direction === 'left' ? 'left-4' : 'right-4'
+    className={`absolute top-1/2 transform -translate-y-1/2 z-10 rounded-full p-3.5 shadow-xl backdrop-blur-md border border-white/40 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 ${direction === 'left' ? 'left-2 md:left-4' : 'right-2 md:right-4'
       } ${className}`}
+    style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,245,0.9) 100%)' }}
   >
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth={2}
+        strokeWidth={2.5}
         d={direction === 'left' ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"}
       />
     </svg>
@@ -619,6 +644,7 @@ function Dashboard() {
     <div className="min-h-screen">
       <header>
         <NavbarWithSuspense />
+        <AnnouncementBar variant="banner" locale={locale} />
       </header>
 
       <section>
@@ -688,78 +714,109 @@ function Dashboard() {
 
       <TextDivider text={t('popularThisWeek')} />
 
-      <section className="py-12 bg-gray-50 relative max-w-full">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="py-16 md:py-20 relative max-w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, #f8f9fc 0%, #eef1f8 50%, #f8f9fc 100%)' }}>
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #ec4899, transparent)' }} />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 relative">
+          {/* Section subtitle */}
+          <p className="text-center text-sm text-gray-400 uppercase tracking-[0.2em] mb-2 font-medium">Curated for you</p>
+
+          {/* Mobile scroll hint */}
+          <div className="flex items-center justify-center gap-2 mb-6 md:hidden">
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              <span>Swipe to explore</span>
+              <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+          </div>
+
           {/* Desktop: Arrow navigation */}
           <ArrowButton
             direction="left"
             onClick={() => scrollProducts('left')}
-            className={`hidden md:flex ${currentPosition === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`hidden md:flex ${currentPosition === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
           />
 
           {/* Products Container */}
-          <div className="overflow-x-auto md:overflow-hidden px-4 md:px-16">
+          <div className="overflow-x-auto md:overflow-hidden px-2 sm:px-4 md:px-16 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             <div
               ref={productsWrapperRef}
-              className="flex gap-6 md:transition-transform md:duration-300 ease-in-out pb-4"
+              className="flex gap-4 sm:gap-5 md:gap-6 md:transition-transform md:duration-500 md:ease-out pb-6 snap-x snap-mandatory md:snap-none"
               style={{
-                // Render a deterministic transform on the server to avoid hydration
-                // mismatch. `currentPosition` is 0 on first render, so server and
-                // client will match. Client updates will adjust this value.
-                transform: `translateX(${currentPosition}px)`
+                transform: `translateX(${currentPosition}px)`,
               }}
             >
               {loading ? (
-                // Loading skeleton cards - Square shaped
+                // Skeleton loader with shimmer
                 Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-72 bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <div className="w-72 h-72 bg-gray-200 animate-pulse" />
-                    <div className="p-4">
-                      <div className="h-4 bg-gray-200 animate-pulse rounded mb-2" />
-                      <div className="h-3 bg-gray-200 animate-pulse rounded mb-2" />
-                      <div className="h-5 bg-gray-200 animate-pulse rounded" />
+                  <div key={index} className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-72 bg-white rounded-2xl shadow-md overflow-hidden snap-center">
+                    <div className="w-full aspect-square relative overflow-hidden bg-gray-100">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
+                          backgroundSize: '200% 100%',
+                          animation: 'shimmer 1.5s ease-in-out infinite',
+                        }}
+                      />
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-100 rounded-full w-3/4" style={{ animation: 'shimmer 1.5s ease-in-out infinite' }} />
+                      <div className="h-3 bg-gray-100 rounded-full w-1/2" />
+                      <div className="flex items-center gap-2">
+                        <div className="h-5 bg-gray-100 rounded-full w-16" />
+                        <div className="h-3 bg-gray-100 rounded-full w-12" />
+                      </div>
                     </div>
                   </div>
                 ))
               ) : error ? (
                 // Error state
                 <div className="flex flex-col items-center justify-center py-16 px-4 w-full">
-                  <div className="text-6xl mb-4">⚠️</div>
-                  <h3 className="text-xl font-semibold text-red-700 mb-2">Unable to Load Products</h3>
-                  <p className="text-gray-600 text-center max-w-md mb-4">
-                    {error.includes('Failed to fetch') ?
-                      'Unable to connect to backend. Make sure your backend server is running.' :
-                      error
+                  <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-5">
+                    <span className="text-4xl">⚠️</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Unable to Load Products</h3>
+                  <p className="text-gray-500 text-center max-w-sm mb-6 text-sm leading-relaxed">
+                    {error.includes('Failed to fetch')
+                      ? 'We couldn\'t reach our servers. Please check your connection and try again.'
+                      : error
                     }
                   </p>
-                  {/* <div className="text-sm text-gray-500 mb-4">
-                    Backend URL: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}
-                  </div> */}
                   <button
                     onClick={() => fetchFeaturedProducts(8, true)}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
                   >
-                    Retry Loading
+                    Try Again
                   </button>
                 </div>
               ) : featuredProducts.length > 0 ? (
-                // Real products from backend - Using square cards
                 featuredProducts.filter(p => p.stock > 0).map((product) => (
                   <SquareProductCard key={product.id} product={product} />
                 ))
               ) : (
-                // Empty state when no products
+                // Empty state
                 <div className="flex flex-col items-center justify-center py-16 px-4 w-full">
-                  <div className="text-6xl mb-4">📦</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Featured Products</h3>
-                  <p className="text-gray-600 text-center max-w-md">
-                    No featured products available at the moment. Check back later or browse our full catalog.
+                  <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-5">
+                    <span className="text-4xl">📦</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Featured Products</h3>
+                  <p className="text-gray-500 text-center max-w-sm text-sm leading-relaxed">
+                    Our featured collection is being refreshed. Check back soon for handpicked selections.
                   </p>
                   <button
                     onClick={() => fetchFeaturedProducts(8, true)}
-                    className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="mt-5 px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
                   >
-                    Refresh Products
+                    Refresh
                   </button>
                 </div>
               )}
@@ -771,12 +828,37 @@ function Dashboard() {
             onClick={() => scrollProducts('right')}
             className={`hidden md:flex ${currentPosition <= -(productsWrapperRef.current?.scrollWidth || 0) +
                 (productsWrapperRef.current?.parentElement?.clientWidth || 0)
-                ? 'opacity-50 cursor-not-allowed' : ''
+                ? 'opacity-30 cursor-not-allowed' : ''
               }`}
           />
+
+          {/* View All CTA */}
+          {!loading && !error && featuredProducts.length > 0 && (
+            <div className="flex justify-center mt-10">
+              <Link
+                href={`/${locale}/products`}
+                className="group inline-flex items-center gap-2 px-8 py-3 rounded-full border-2 border-gray-900 text-gray-900 text-sm font-semibold hover:bg-gray-900 hover:text-white transition-all duration-300 hover:shadow-xl hover:shadow-gray-900/10"
+              >
+                View All Products
+                <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          )}
         </div>
+
+        {/* Shimmer keyframes */}
+        <style jsx>{`
+          @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          div::-webkit-scrollbar { display: none; }
+        `}</style>
       </section>
 
+      <AnnouncementBar variant="banner" locale={locale} />
       <TextDivider text={t('brandsForYou')} />
 
       <section className="py-8 px-4 max-w-7xl mx-auto">
@@ -853,7 +935,7 @@ function Dashboard() {
             <div className="relative rounded-2xl overflow-hidden group">
               {(() => {
                 const bannerImage = summerBanner?.summerBannerBackgroundImage || getDefaultSummerBanner().summerBannerBackgroundImage;
-                const isBackendUrl = bannerImage && (bannerImage.includes('localhost:5000') || bannerImage.includes('/uploads/'));
+                const isBackendUrl = isBackendImageUrl(bannerImage);
                 
                 return isBackendUrl ? (
                   <img

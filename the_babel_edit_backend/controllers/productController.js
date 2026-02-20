@@ -1,5 +1,6 @@
 import prisma from '../prismaClient.js';
 import { appendAuditLog } from './adminController.js';
+import { toRelativePath } from '../utils/urlUtils.js';
 
 // Helper functions for string matching (used across multiple controller functions)
 const strContains = (val) => ({ contains: val });
@@ -586,13 +587,22 @@ export const getFilterOptions = async (req, res) => {
     const typeNames = collectUnique(productsForFilters.map(p => p.type?.name).filter(Boolean));
 
     const colorCounts = countByValue(p => p.colors);
+    const sizeCounts = countByValue(p => p.sizes);
+
+    // Type counts: always computed from category-level (not filtered by type/color)
+    // so all type options show accurate product counts even when one type is selected
+    const typeCountWhere = { isActive: true };
+    if (categoryId) typeCountWhere.categoryId = categoryId;
+    const productsForTypeCounts = await prisma.product.findMany({
+      where: typeCountWhere,
+      select: { type: { select: { name: true } } }
+    });
     const typeCounts = {};
-    productsForFilters.forEach(p => {
+    productsForTypeCounts.forEach(p => {
       if (p.type?.name) {
         typeCounts[p.type.name] = (typeCounts[p.type.name] || 0) + 1;
       }
     });
-    const sizeCounts = countByValue(p => p.sizes);
 
     // Fetch all types for this category from database
     let allTypesForCategory = [];
@@ -754,9 +764,12 @@ export const createProduct = async (req, res) => {
       }
     }
 
+    // Normalize empty SKU to null (the DB column is unique, so '' would conflict)
+    const normalizedSku = sku && String(sku).trim() ? String(sku).trim() : null;
+
     // If SKU provided, ensure it's unique before attempting create
-    if (sku) {
-      const existing = await prisma.product.findUnique({ where: { sku } });
+    if (normalizedSku) {
+      const existing = await prisma.product.findUnique({ where: { sku: normalizedSku } });
       if (existing) {
         return res.status(409).json({ message: 'Product with this SKU already exists', field: 'sku' });
       }
@@ -767,16 +780,22 @@ export const createProduct = async (req, res) => {
       ? Math.round(((parseFloat(comparePrice) - parseFloat(price)) / parseFloat(comparePrice)) * 100)
       : null;
 
+    // Normalize image URLs to relative paths for portable storage
+    const normalizedImageUrl = toRelativePath(imageUrl);
+    const normalizedImages = Array.isArray(images)
+      ? images.map(img => typeof img === 'string' ? toRelativePath(img) : img)
+      : images || [];
+
     const product = await prisma.product.create({
       data: {
         name,
         description,
         price: parseFloat(price),
         comparePrice: comparePrice ? parseFloat(comparePrice) : null,
-        imageUrl,
-        images: images || [],
+        imageUrl: normalizedImageUrl,
+        images: normalizedImages,
         stock: parseInt(stock) || 0,
-        sku,
+        sku: normalizedSku,
         collectionId,
         categoryId,
         typeId,
@@ -867,10 +886,14 @@ export const updateProduct = async (req, res) => {
     if (description !== undefined) updateData.description = description;
     if (price !== undefined) updateData.price = parseFloat(price);
     if (comparePrice !== undefined) updateData.comparePrice = comparePrice ? parseFloat(comparePrice) : null;
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    if (images !== undefined) updateData.images = images;
+    if (imageUrl !== undefined) updateData.imageUrl = toRelativePath(imageUrl);
+    if (images !== undefined) {
+      updateData.images = Array.isArray(images)
+        ? images.map(img => typeof img === 'string' ? toRelativePath(img) : img)
+        : images;
+    }
     if (stock !== undefined) updateData.stock = parseInt(stock);
-    if (sku !== undefined) updateData.sku = sku;
+    if (sku !== undefined) updateData.sku = (sku && String(sku).trim()) ? String(sku).trim() : null;
     if (threshold !== undefined) updateData.threshold = parseInt(threshold);
     if (collectionId !== undefined) updateData.collectionId = collectionId;
     if (categoryId !== undefined) updateData.categoryId = categoryId;

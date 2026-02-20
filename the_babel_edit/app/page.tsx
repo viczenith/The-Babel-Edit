@@ -9,6 +9,7 @@ import Footer from './components/features/Footer/Footer';
 import { useParams, useRouter } from 'next/navigation';
 import { apiRequest, API_ENDPOINTS } from './lib/api';
 import { toast } from 'react-hot-toast';
+import AnnouncementBar from './components/features/AnnouncementBar/AnnouncementBar';
 
 interface LandingPageData {
   landingPageBackgroundMode: 'NONE' | 'IMAGE' | 'VIDEO';
@@ -122,6 +123,9 @@ export default function LandingPage() {
           <Link href={`/${currentLocale}/contact`} className={styles.navLink}>Contact</Link>
         </nav>
       </header>
+
+      {/* Announcement Bar — forcefully shows dynamic bg color */}
+      <AnnouncementBar variant="banner" locale={currentLocale} />
 
       <main className={styles.main}>
         {/* Hero Section - Three Modes */}

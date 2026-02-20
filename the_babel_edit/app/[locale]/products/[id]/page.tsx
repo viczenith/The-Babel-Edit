@@ -14,17 +14,12 @@ import { apiRequest, API_ENDPOINTS } from '@/app/lib/api';
 import en from '@/locales/en/common.json';
 import fr from '@/locales/fr/common.json';
 import { formatCurrency } from '@/lib/utils';
+import { isBackendImageUrl, resolveImageUrl as resolveImgUrl } from '@/app/utils/imageUrl';
 
 /*  HELPERS  */
 
-const isBackendImage = (url: string): boolean => {
-  try { const u = new URL(url); return u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '::1'; } catch { return false; }
-};
-
 const resolveImageUrl = (url: string): string => {
-  if (!url) return '/images/babel_logo_black.jpg';
-  if (isBackendImage(url)) return `/api/image?url=${encodeURIComponent(url)}`;
-  return url;
+  return resolveImgUrl(url, '/images/babel_logo_black.jpg');
 };
 
 const PLACEHOLDER = '/images/babel_logo_black.jpg';
@@ -146,7 +141,7 @@ function Gallery({ images, onWishlistClick, isWishlisted, wishlistLoading }: {
   );
 
   const mainSrc = src(images[idx].src);
-  const unopt = isBackendImage(images[idx].src);
+  const mainIsBackend = isBackendImageUrl(images[idx].src);
 
   return (
     <div className="space-y-3">
@@ -154,11 +149,18 @@ function Gallery({ images, onWishlistClick, isWishlisted, wishlistLoading }: {
         className="relative rounded-2xl overflow-hidden bg-gray-50 aspect-square cursor-crosshair group"
         onMouseEnter={() => setZoomed(true)} onMouseLeave={() => setZoomed(false)}
         onMouseMove={e => { if (!ref.current) return; const r = ref.current.getBoundingClientRect(); setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 }); }}>
-        <Image src={mainSrc} alt={images[idx].alt} fill sizes="(max-width: 768px) 100vw, 50vw"
-          unoptimized={unopt} priority
-          className={`object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`}
-          style={zoomed ? { transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
-          onError={() => setFailed(p => new Set(p).add(images[idx].src))} />
+        {mainIsBackend ? (
+          <img src={mainSrc} alt={images[idx].alt}
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`}
+            style={zoomed ? { transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
+            onError={() => setFailed(p => new Set(p).add(images[idx].src))} />
+        ) : (
+          <Image src={mainSrc} alt={images[idx].alt} fill sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+            className={`object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`}
+            style={zoomed ? { transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
+            onError={() => setFailed(p => new Set(p).add(images[idx].src))} />
+        )}
 
         {/* Floating actions */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
@@ -194,8 +196,13 @@ function Gallery({ images, onWishlistClick, isWishlisted, wishlistLoading }: {
           {images.map((img, i) => (
             <button key={img.src + i} onClick={() => setIdx(i)}
               className={`relative shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-lg overflow-hidden transition-all duration-200 ${i === idx ? 'ring-2 ring-blue-600 ring-offset-2' : 'opacity-50 hover:opacity-90'}`}>
-              <Image src={src(img.src)} alt={img.alt} width={72} height={72} unoptimized={isBackendImage(img.src)}
-                onError={() => setFailed(p => new Set(p).add(img.src))} className="w-full h-full object-cover"/>
+              {isBackendImageUrl(img.src) ? (
+                <img src={src(img.src)} alt={img.alt}
+                  onError={() => setFailed(p => new Set(p).add(img.src))} className="w-full h-full object-cover"/>
+              ) : (
+                <Image src={src(img.src)} alt={img.alt} width={72} height={72}
+                  onError={() => setFailed(p => new Set(p).add(img.src))} className="w-full h-full object-cover"/>
+              )}
             </button>
           ))}
         </div>
