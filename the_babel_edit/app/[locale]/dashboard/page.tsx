@@ -453,7 +453,14 @@ function Dashboard() {
           summerBannerCountdownHours: data.summerBannerCountdownHours || 8,
           summerBannerCountdownMinutes: data.summerBannerCountdownMinutes || 4,
           summerBannerCountdownSeconds: data.summerBannerCountdownSeconds || 5,
-          summerBannerBackgroundImage: data.summerBannerBackgroundImage || data.backgroundImage || data.image || ''
+          summerBannerBackgroundImage: data.summerBannerBackgroundImage || data.backgroundImage || data.image || '',
+          summerBannerLinkText: data.summerBannerLinkText || null,
+          summerBannerLinkUrl: data.summerBannerLinkUrl || null,
+          summerBannerStartDate: data.summerBannerStartDate || null,
+          summerBannerEndDate: data.summerBannerEndDate || null,
+          summerBannerBgColor: data.summerBannerBgColor || null,
+          summerBannerTextColor: data.summerBannerTextColor || null,
+          summerBannerPriority: data.summerBannerPriority || 0
         };
         setSummerBanner(normalized);
       } else {
@@ -829,76 +836,113 @@ function Dashboard() {
       </section>
 
       <section className="py-8 px-4 max-w-7xl mx-auto">
-        {/* Summer Banner Carousel */}
-        <div className="relative rounded-2xl overflow-hidden group">
-          {(() => {
-            const bannerImage = summerBanner?.summerBannerBackgroundImage || getDefaultSummerBanner().summerBannerBackgroundImage;
-            const isBackendUrl = bannerImage && (bannerImage.includes('localhost:5000') || bannerImage.includes('/uploads/'));
-            
-            return isBackendUrl ? (
-              // Use native img for backend URLs
-              <img
-                src={bannerImage}
-                alt="Summer Collection"
-                className="w-full h-auto min-h-[400px] md:min-h-[500px] object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"%3E%3Crect fill="%23d1d5db" width="1200" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="%239ca3af"%3ESummer Banner%3C/text%3E%3C/svg%3E';
+        {/* Summer Banner Carousel — with scheduling support */}
+        {(() => {
+          // Check scheduling: hide banner if outside date range
+          const now = new Date();
+          const startDate = summerBanner?.summerBannerStartDate ? new Date(summerBanner.summerBannerStartDate) : null;
+          const endDate = summerBanner?.summerBannerEndDate ? new Date(summerBanner.summerBannerEndDate) : null;
+          const isScheduled = (!startDate || startDate <= now) && (!endDate || endDate >= now);
+
+          if (!isScheduled) return null;
+
+          const bannerTextColor = summerBanner?.summerBannerTextColor || '#ffffff';
+          const bannerBgColor = summerBanner?.summerBannerBgColor || null;
+
+          return (
+            <div className="relative rounded-2xl overflow-hidden group">
+              {(() => {
+                const bannerImage = summerBanner?.summerBannerBackgroundImage || getDefaultSummerBanner().summerBannerBackgroundImage;
+                const isBackendUrl = bannerImage && (bannerImage.includes('localhost:5000') || bannerImage.includes('/uploads/'));
+                
+                return isBackendUrl ? (
+                  <img
+                    src={bannerImage}
+                    alt="Summer Collection"
+                    className="w-full h-auto min-h-[400px] md:min-h-[500px] object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"%3E%3Crect fill="%23d1d5db" width="1200" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="%239ca3af"%3ESummer Banner%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src={bannerImage}
+                    alt="Summer Collection"
+                    width={1200}
+                    height={600}
+                    className="w-full h-auto object-cover min-h-[400px] md:min-h-[500px]"
+                  />
+                );
+              })()}
+              
+              {/* Gradient Overlay — supports custom bg color */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: bannerBgColor
+                    ? `linear-gradient(to right, ${bannerBgColor}99, ${bannerBgColor}66, ${bannerBgColor}33)`
+                    : 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.4), rgba(0,0,0,0.2))'
                 }}
               />
-            ) : (
-              // Use Next.js Image for external URLs
-              <Image
-                src={bannerImage}
-                alt="Summer Collection"
-                width={1200}
-                height={600}
-                className="w-full h-auto object-cover min-h-[400px] md:min-h-[500px]"
-              />
-            );
-          })()}
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20" />
-          
-          {/* Content */}
-          <div className="absolute inset-0 flex items-center justify-center md:justify-start">
-            <div className="text-center md:text-left p-6 md:p-12 md:ml-8 max-w-md">
-              <h2 className="text-4xl md:text-5xl font-bold !text-white mb-4 drop-shadow-lg">
-                {summerBanner?.summerBannerTitle || getDefaultSummerBanner().summerBannerTitle}
-              </h2>
-              <p className="!text-white text-lg mb-8 drop-shadow-md font-semibold">
-                {summerBanner?.summerBannerDescription || getDefaultSummerBanner().summerBannerDescription}
-              </p>
-              <button className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                {summerBanner?.summerBannerButtonText || getDefaultSummerBanner().summerBannerButtonText}
-              </button>
               
-              {/* Countdown Timer */}
-              <div className="flex justify-center md:justify-start gap-2 text-white mt-10">
-                <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
-                  <div className="text-2xl md:text-3xl font-bold">
-                    {String(summerBanner?.summerBannerCountdownDays || getDefaultSummerBanner().summerBannerCountdownDays).padStart(2, '0')}
+              {/* Content */}
+              <div className="absolute inset-0 flex items-center justify-center md:justify-start">
+                <div className="text-center md:text-left p-6 md:p-12 md:ml-8 max-w-md">
+                  <h2
+                    className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg"
+                    style={{ color: bannerTextColor }}
+                  >
+                    {summerBanner?.summerBannerTitle || getDefaultSummerBanner().summerBannerTitle}
+                  </h2>
+                  <p
+                    className="text-lg mb-8 drop-shadow-md font-semibold"
+                    style={{ color: bannerTextColor }}
+                  >
+                    {summerBanner?.summerBannerDescription || getDefaultSummerBanner().summerBannerDescription}
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center md:items-start gap-3">
+                    <button className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                      {summerBanner?.summerBannerButtonText || getDefaultSummerBanner().summerBannerButtonText}
+                    </button>
+                    {summerBanner?.summerBannerLinkText && summerBanner?.summerBannerLinkUrl && (
+                      <Link
+                        href={`/${locale}${summerBanner.summerBannerLinkUrl.startsWith('/') ? summerBanner.summerBannerLinkUrl : '/' + summerBanner.summerBannerLinkUrl}`}
+                        className="px-6 py-4 border-2 rounded-full font-bold hover:bg-white/10 transition-all duration-300 backdrop-blur-sm"
+                        style={{ color: bannerTextColor, borderColor: `${bannerTextColor}80` }}
+                      >
+                        {summerBanner.summerBannerLinkText}
+                      </Link>
+                    )}
                   </div>
-                  <div className="text-xs md:text-sm opacity-80">Days</div>
-                </div>
-                <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
-                <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
-                  <div className="text-2xl md:text-3xl font-bold">
-                    {String(summerBanner?.summerBannerCountdownHours || getDefaultSummerBanner().summerBannerCountdownHours).padStart(2, '0')}
+                  
+                  {/* Countdown Timer */}
+                  <div className="flex justify-center md:justify-start gap-2 mt-10" style={{ color: bannerTextColor }}>
+                    <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
+                      <div className="text-2xl md:text-3xl font-bold">
+                        {String(summerBanner?.summerBannerCountdownDays || getDefaultSummerBanner().summerBannerCountdownDays).padStart(2, '0')}
+                      </div>
+                      <div className="text-xs md:text-sm opacity-80">Days</div>
+                    </div>
+                    <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
+                    <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
+                      <div className="text-2xl md:text-3xl font-bold">
+                        {String(summerBanner?.summerBannerCountdownHours || getDefaultSummerBanner().summerBannerCountdownHours).padStart(2, '0')}
+                      </div>
+                      <div className="text-xs md:text-sm opacity-80">Hours</div>
+                    </div>
+                    <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
+                    <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
+                      <div className="text-2xl md:text-3xl font-bold">
+                        {String(summerBanner?.summerBannerCountdownMinutes || getDefaultSummerBanner().summerBannerCountdownMinutes).padStart(2, '0')}
+                      </div>
+                      <div className="text-xs md:text-sm opacity-80">Mins</div>
+                    </div>
                   </div>
-                  <div className="text-xs md:text-sm opacity-80">Hours</div>
-                </div>
-                <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
-                <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
-                  <div className="text-2xl md:text-3xl font-bold">
-                    {String(summerBanner?.summerBannerCountdownMinutes || getDefaultSummerBanner().summerBannerCountdownMinutes).padStart(2, '0')}
-                  </div>
-                  <div className="text-xs md:text-sm opacity-80">Mins</div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </section>
 
       <section className="py-16">

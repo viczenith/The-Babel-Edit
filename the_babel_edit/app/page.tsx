@@ -19,6 +19,13 @@ interface LandingPageData {
   landingPageButtonText: string;
   landingPageButtonLink: string;
   landingPageOverlayOpacity: number;
+  landingPageLinkText: string | null;
+  landingPageLinkUrl: string | null;
+  landingPageStartDate: string | null;
+  landingPageEndDate: string | null;
+  landingPageBgColor: string | null;
+  landingPageTextColor: string | null;
+  landingPagePriority: number;
 }
 
 export default function LandingPage() {
@@ -47,6 +54,13 @@ export default function LandingPage() {
             landingPageButtonText: data.landingPageButtonText || 'Shop Now',
             landingPageButtonLink: data.landingPageButtonLink || '/products',
             landingPageOverlayOpacity: data.landingPageOverlayOpacity || 40,
+            landingPageLinkText: data.landingPageLinkText || null,
+            landingPageLinkUrl: data.landingPageLinkUrl || null,
+            landingPageStartDate: data.landingPageStartDate || null,
+            landingPageEndDate: data.landingPageEndDate || null,
+            landingPageBgColor: data.landingPageBgColor || null,
+            landingPageTextColor: data.landingPageTextColor || null,
+            landingPagePriority: data.landingPagePriority || 0,
           });
         }
       } catch (error) {
@@ -63,6 +77,26 @@ export default function LandingPage() {
     const link = landingData?.landingPageButtonLink || '/products';
     router.push(`/${currentLocale}${link.startsWith('/') ? link : '/' + link}`);
   };
+
+  const handleLinkClick = () => {
+    const link = landingData?.landingPageLinkUrl;
+    if (link) {
+      router.push(`/${currentLocale}${link.startsWith('/') ? link : '/' + link}`);
+    }
+  };
+
+  // Check if the landing page hero is within its scheduled date range
+  const isHeroScheduled = () => {
+    if (!landingData) return true;
+    const now = new Date();
+    if (landingData.landingPageStartDate && new Date(landingData.landingPageStartDate) > now) return false;
+    if (landingData.landingPageEndDate && new Date(landingData.landingPageEndDate) < now) return false;
+    return true;
+  };
+
+  // Get text color (custom override or default white)
+  const heroTextColor = landingData?.landingPageTextColor || '#ffffff';
+  const heroBgColor = landingData?.landingPageBgColor || null;
 
   return (
     <div className={styles.container}>
@@ -91,63 +125,99 @@ export default function LandingPage() {
 
       <main className={styles.main}>
         {/* Hero Section - Three Modes */}
-        {!loading && landingData?.landingPageBackgroundMode === 'VIDEO' && landingData.landingPageVideoUrl ? (
+        {!loading && isHeroScheduled() && landingData?.landingPageBackgroundMode === 'VIDEO' && landingData.landingPageVideoUrl ? (
           // Mode: VIDEO with fallback image
           <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
-            {/* Background Video */}
+            {/* Background Video — beautiful autoplay */}
             <video
               autoPlay
               muted
               loop
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={() => {
-                // Video failed, fallback will be shown via CSS
+              playsInline
+              preload="auto"
+              poster={landingData.landingPageBackgroundImage || undefined}
+              className="absolute inset-0 w-full h-full object-cover scale-[1.02] transition-transform duration-[2000ms]"
+              style={{ filter: 'brightness(0.95)' }}
+              onError={(e) => {
+                // On video error, show fallback image by hiding video
+                (e.target as HTMLVideoElement).style.display = 'none';
+                const fallback = document.getElementById('hero-video-fallback');
+                if (fallback) fallback.style.display = 'block';
+              }}
+              onCanPlay={(e) => {
+                // Ensure autoplay starts on ready
+                (e.target as HTMLVideoElement).play().catch(() => {});
               }}
             >
               <source src={landingData.landingPageVideoUrl} type="video/mp4" />
+              <source src={landingData.landingPageVideoUrl} type="video/webm" />
               Your browser does not support the video tag.
             </video>
 
             {/* Video Fallback Image */}
             {landingData.landingPageBackgroundImage && (
               <img
+                id="hero-video-fallback"
                 src={landingData.landingPageBackgroundImage}
                 alt="Landing page background fallback"
-                className="absolute inset-0 w-full h-full object-cover hidden"
+                className="absolute inset-0 w-full h-full object-cover"
                 style={{ display: 'none' }}
               />
             )}
 
-            {/* Overlay */}
+            {/* Overlay — supports custom bg color */}
             <div
-              className="absolute inset-0 bg-black transition-opacity duration-300"
-              style={{ opacity: `${landingData.landingPageOverlayOpacity / 100}` }}
+              className="absolute inset-0 transition-opacity duration-500"
+              style={{
+                backgroundColor: heroBgColor || '#000000',
+                opacity: landingData.landingPageOverlayOpacity / 100,
+              }}
             ></div>
 
+            {/* Subtle gradient for readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+
             {/* Content */}
-            <div className="relative z-10 text-center !text-white px-4 max-w-2xl">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">
+            <div className="relative z-10 text-center px-4 max-w-2xl animate-fade-in">
+              <h1
+                className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 drop-shadow-lg tracking-tight"
+                style={{ color: heroTextColor }}
+              >
                 {landingData.landingPageTitle}
               </h1>
-              <p className="text-xl md:text-2xl mb-8 drop-shadow-md opacity-95">
+              <p
+                className="text-xl md:text-2xl mb-8 drop-shadow-md opacity-95 font-light"
+                style={{ color: heroTextColor }}
+              >
                 {landingData.landingPageSubtitle}
               </p>
-              <button
-                onClick={handleButtonClick}
-                className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                {landingData.landingPageButtonText}
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={handleButtonClick}
+                  className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {landingData.landingPageButtonText}
+                </button>
+                {landingData.landingPageLinkText && landingData.landingPageLinkUrl && (
+                  <button
+                    onClick={handleLinkClick}
+                    className="px-6 py-3 border-2 border-white/70 font-semibold rounded-full hover:bg-white/10 transition-all duration-300 backdrop-blur-sm"
+                    style={{ color: heroTextColor, borderColor: `${heroTextColor}80` }}
+                  >
+                    {landingData.landingPageLinkText}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Scroll indicator */}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{ color: heroTextColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </div>
           </section>
-        ) : !loading && landingData?.landingPageBackgroundMode === 'IMAGE' && landingData.landingPageBackgroundImage ? (
+        ) : !loading && isHeroScheduled() && landingData?.landingPageBackgroundMode === 'IMAGE' && landingData.landingPageBackgroundImage ? (
           // Mode: IMAGE background
           <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image */}
@@ -157,31 +227,51 @@ export default function LandingPage() {
               className="absolute inset-0 w-full h-full object-cover"
             />
 
-            {/* Overlay */}
+            {/* Overlay — supports custom bg color */}
             <div
-              className="absolute inset-0 bg-black transition-opacity duration-300"
-              style={{ opacity: `${landingData.landingPageOverlayOpacity / 100}` }}
+              className="absolute inset-0 transition-opacity duration-300"
+              style={{
+                backgroundColor: heroBgColor || '#000000',
+                opacity: landingData.landingPageOverlayOpacity / 100,
+              }}
             ></div>
 
             {/* Content */}
-            <div className="relative z-10 text-center text-white px-4 max-w-2xl">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">
+            <div className="relative z-10 text-center px-4 max-w-2xl">
+              <h1
+                className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg"
+                style={{ color: heroTextColor }}
+              >
                 {landingData.landingPageTitle}
               </h1>
-              <p className="text-xl md:text-2xl mb-8 drop-shadow-md opacity-95">
+              <p
+                className="text-xl md:text-2xl mb-8 drop-shadow-md opacity-95"
+                style={{ color: heroTextColor }}
+              >
                 {landingData.landingPageSubtitle}
               </p>
-              <button
-                onClick={handleButtonClick}
-                className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                {landingData.landingPageButtonText}
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={handleButtonClick}
+                  className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {landingData.landingPageButtonText}
+                </button>
+                {landingData.landingPageLinkText && landingData.landingPageLinkUrl && (
+                  <button
+                    onClick={handleLinkClick}
+                    className="px-6 py-3 border-2 border-white/70 font-semibold rounded-full hover:bg-white/10 transition-all duration-300 backdrop-blur-sm"
+                    style={{ color: heroTextColor, borderColor: `${heroTextColor}80` }}
+                  >
+                    {landingData.landingPageLinkText}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Scroll indicator */}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{ color: heroTextColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </div>

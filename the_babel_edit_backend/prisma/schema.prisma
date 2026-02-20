@@ -318,6 +318,7 @@ model HighlightCard {
 
 model DashboardConfig {
   id                    String   @id @default(cuid())
+  // Summer Banner fields
   summerBannerTitle     String   @default("Summer Collection")
   summerBannerDescription String @default("Limited time offer - Don't miss out!")
   summerBannerButtonText String  @default("Shop Now")
@@ -326,6 +327,14 @@ model DashboardConfig {
   summerBannerCountdownMinutes Int @default(0)
   summerBannerCountdownSeconds Int @default(0)
   summerBannerBackgroundImage String?
+  summerBannerLinkText  String?           // e.g. "Shop Now", "View Collection"
+  summerBannerLinkUrl   String?           // e.g. "/products?category=summer"
+  summerBannerStartDate DateTime?         // Scheduled start (null = immediately)
+  summerBannerEndDate   DateTime?         // Scheduled end (null = no expiry)
+  summerBannerBgColor   String?           // Custom hex background color override
+  summerBannerTextColor String?           // Custom hex text color override
+  summerBannerPriority  Int      @default(0) // Higher = shown first
+  // Landing Page Hero fields
   landingPageBackgroundMode LandingPageBackgroundMode @default(NONE)
   landingPageBackgroundImage String?
   landingPageVideoUrl   String?
@@ -334,6 +343,13 @@ model DashboardConfig {
   landingPageButtonText String   @default("Shop Now")
   landingPageButtonLink String   @default("/products")
   landingPageOverlayOpacity Int   @default(40)
+  landingPageLinkText   String?           // e.g. "Explore More", "Learn More"
+  landingPageLinkUrl    String?           // e.g. "/about" or "/products?new=true"
+  landingPageStartDate  DateTime?         // Scheduled start (null = immediately)
+  landingPageEndDate    DateTime?         // Scheduled end (null = no expiry)
+  landingPageBgColor    String?           // Custom hex background color override
+  landingPageTextColor  String?           // Custom hex text color override
+  landingPagePriority   Int      @default(0) // Higher = shown first
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   

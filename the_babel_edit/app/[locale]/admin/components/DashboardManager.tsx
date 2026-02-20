@@ -34,6 +34,13 @@ interface SummerBanner {
   summerBannerCountdownMinutes: number;
   summerBannerCountdownSeconds: number;
   summerBannerBackgroundImage: string;
+  summerBannerLinkText: string;
+  summerBannerLinkUrl: string;
+  summerBannerStartDate: string | null;
+  summerBannerEndDate: string | null;
+  summerBannerBgColor: string;
+  summerBannerTextColor: string;
+  summerBannerPriority: number;
 }
 
 interface LandingPage {
@@ -46,6 +53,13 @@ interface LandingPage {
   landingPageButtonText: string;
   landingPageButtonLink: string;
   landingPageOverlayOpacity: number;
+  landingPageLinkText: string;
+  landingPageLinkUrl: string;
+  landingPageStartDate: string | null;
+  landingPageEndDate: string | null;
+  landingPageBgColor: string;
+  landingPageTextColor: string;
+  landingPagePriority: number;
 }
 
 const DashboardManager = () => {
@@ -72,7 +86,14 @@ const DashboardManager = () => {
     summerBannerCountdownHours: 8,
     summerBannerCountdownMinutes: 4,
     summerBannerCountdownSeconds: 5,
-    summerBannerBackgroundImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop&crop=center'
+    summerBannerBackgroundImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop&crop=center',
+    summerBannerLinkText: '',
+    summerBannerLinkUrl: '',
+    summerBannerStartDate: null,
+    summerBannerEndDate: null,
+    summerBannerBgColor: '',
+    summerBannerTextColor: '',
+    summerBannerPriority: 0
   });
   const [editingBanner, setEditingBanner] = useState<SummerBanner | null>(null);
   const [bannerLoading, setBannerLoading] = useState(true);
@@ -88,7 +109,14 @@ const DashboardManager = () => {
     landingPageSubtitle: 'Discover Premium Fashion & Lifestyle',
     landingPageButtonText: 'Shop Now',
     landingPageButtonLink: '/products',
-    landingPageOverlayOpacity: 40
+    landingPageOverlayOpacity: 40,
+    landingPageLinkText: '',
+    landingPageLinkUrl: '',
+    landingPageStartDate: null,
+    landingPageEndDate: null,
+    landingPageBgColor: '',
+    landingPageTextColor: '',
+    landingPagePriority: 0
   });
   const [editingLandingPage, setEditingLandingPage] = useState<LandingPage | null>(null);
   const [landingPageLoading, setLandingPageLoading] = useState(true);
@@ -556,7 +584,14 @@ const DashboardManager = () => {
         const normalized = {
           ...summerBanner,
           ...data,
-          summerBannerBackgroundImage: data.summerBannerBackgroundImage || data.backgroundImage || data.image || ''
+          summerBannerBackgroundImage: data.summerBannerBackgroundImage || data.backgroundImage || data.image || '',
+          summerBannerLinkText: data.summerBannerLinkText || '',
+          summerBannerLinkUrl: data.summerBannerLinkUrl || '',
+          summerBannerStartDate: data.summerBannerStartDate ? new Date(data.summerBannerStartDate).toISOString().slice(0, 16) : null,
+          summerBannerEndDate: data.summerBannerEndDate ? new Date(data.summerBannerEndDate).toISOString().slice(0, 16) : null,
+          summerBannerBgColor: data.summerBannerBgColor || '',
+          summerBannerTextColor: data.summerBannerTextColor || '',
+          summerBannerPriority: data.summerBannerPriority || 0
         } as SummerBanner;
         setSummerBanner(normalized);
       } else {
@@ -597,11 +632,21 @@ const DashboardManager = () => {
 
       setBannerErrors({});
 
+      const payload = {
+        ...bannertosave,
+        summerBannerLinkText: bannertosave.summerBannerLinkText || null,
+        summerBannerLinkUrl: bannertosave.summerBannerLinkUrl || null,
+        summerBannerStartDate: bannertosave.summerBannerStartDate || null,
+        summerBannerEndDate: bannertosave.summerBannerEndDate || null,
+        summerBannerBgColor: bannertosave.summerBannerBgColor || null,
+        summerBannerTextColor: bannertosave.summerBannerTextColor || null,
+      };
+
       await apiRequest(
         API_ENDPOINTS.DASHBOARD.UPDATE_SUMMER_BANNER,
         {
           method: 'POST',
-          body: bannertosave,
+          body: payload,
           requireAuth: true
         }
       );
@@ -675,7 +720,14 @@ const DashboardManager = () => {
           landingPageSubtitle: data.landingPageSubtitle || 'Discover Premium Fashion & Lifestyle',
           landingPageButtonText: data.landingPageButtonText || 'Shop Now',
           landingPageButtonLink: data.landingPageButtonLink || '/products',
-          landingPageOverlayOpacity: data.landingPageOverlayOpacity || 40
+          landingPageOverlayOpacity: data.landingPageOverlayOpacity || 40,
+          landingPageLinkText: data.landingPageLinkText || '',
+          landingPageLinkUrl: data.landingPageLinkUrl || '',
+          landingPageStartDate: data.landingPageStartDate ? new Date(data.landingPageStartDate).toISOString().slice(0, 16) : null,
+          landingPageEndDate: data.landingPageEndDate ? new Date(data.landingPageEndDate).toISOString().slice(0, 16) : null,
+          landingPageBgColor: data.landingPageBgColor || '',
+          landingPageTextColor: data.landingPageTextColor || '',
+          landingPagePriority: data.landingPagePriority || 0
         } as LandingPage;
         setLandingPage(normalized);
       }
@@ -718,11 +770,21 @@ const DashboardManager = () => {
 
       setLandingPageErrors({});
 
+      const payload = {
+        ...pageToSave,
+        landingPageLinkText: pageToSave.landingPageLinkText || null,
+        landingPageLinkUrl: pageToSave.landingPageLinkUrl || null,
+        landingPageStartDate: pageToSave.landingPageStartDate || null,
+        landingPageEndDate: pageToSave.landingPageEndDate || null,
+        landingPageBgColor: pageToSave.landingPageBgColor || null,
+        landingPageTextColor: pageToSave.landingPageTextColor || null,
+      };
+
       await apiRequest(
         API_ENDPOINTS.DASHBOARD.UPDATE_LANDING_PAGE,
         {
           method: 'POST',
-          body: pageToSave,
+          body: payload,
           requireAuth: true
         }
       );
@@ -1433,6 +1495,128 @@ const DashboardManager = () => {
                   </div>
                 </div>
 
+                {/* Link Settings */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Text (optional)</label>
+                    <input
+                      type="text"
+                      value={editingBanner.summerBannerLinkText || ''}
+                      onChange={(e) => handleBannerChange('summerBannerLinkText', e.target.value)}
+                      placeholder="e.g., Shop Now, View Collection"
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link URL (optional)</label>
+                    <input
+                      type="text"
+                      value={editingBanner.summerBannerLinkUrl || ''}
+                      onChange={(e) => handleBannerChange('summerBannerLinkUrl', e.target.value)}
+                      placeholder="e.g., /products?category=summer"
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Schedule */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date (optional)</label>
+                    <input
+                      type="datetime-local"
+                      value={editingBanner.summerBannerStartDate || ''}
+                      onChange={(e) => handleBannerChange('summerBannerStartDate', e.target.value || null)}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty to show immediately</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date (optional)</label>
+                    <input
+                      type="datetime-local"
+                      value={editingBanner.summerBannerEndDate || ''}
+                      onChange={(e) => handleBannerChange('summerBannerEndDate', e.target.value || null)}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
+                  </div>
+                </div>
+
+                {/* Custom Colors & Priority */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={editingBanner.summerBannerBgColor || '#000000'}
+                        onChange={(e) => handleBannerChange('summerBannerBgColor', e.target.value)}
+                        className="w-10 h-10 rounded border cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={editingBanner.summerBannerBgColor || ''}
+                        onChange={(e) => handleBannerChange('summerBannerBgColor', e.target.value)}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Overlay/accent color override</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={editingBanner.summerBannerTextColor || '#ffffff'}
+                        onChange={(e) => handleBannerChange('summerBannerTextColor', e.target.value)}
+                        className="w-10 h-10 rounded border cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={editingBanner.summerBannerTextColor || ''}
+                        onChange={(e) => handleBannerChange('summerBannerTextColor', e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Banner text color override</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <input
+                      type="number"
+                      value={editingBanner.summerBannerPriority}
+                      onChange={(e) => handleBannerChange('summerBannerPriority', parseInt(e.target.value) || 0)}
+                      min={0}
+                      max={100}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Higher = shown first</p>
+                  </div>
+                </div>
+
+                {/* Banner Preview */}
+                {(editingBanner.summerBannerBgColor || editingBanner.summerBannerTextColor) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Color Preview</label>
+                    <div
+                      className="rounded-lg px-4 py-3 text-sm font-medium text-center"
+                      style={{
+                        backgroundColor: editingBanner.summerBannerBgColor || '#000000',
+                        color: editingBanner.summerBannerTextColor || '#ffffff',
+                      }}
+                    >
+                      <span className="font-bold">{editingBanner.summerBannerTitle || 'Banner Title'}</span>
+                      <span className="ml-2">{editingBanner.summerBannerDescription || 'Description text'}</span>
+                      {editingBanner.summerBannerLinkText && (
+                        <span className="ml-2 underline font-semibold">{editingBanner.summerBannerLinkText}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     onClick={saveSummerBanner}
@@ -1456,6 +1640,37 @@ const DashboardManager = () => {
                 <p><strong>Description:</strong> {summerBanner.summerBannerDescription}</p>
                 <p><strong>Button:</strong> {summerBanner.summerBannerButtonText}</p>
                 <p><strong>Countdown:</strong> {summerBanner.summerBannerCountdownDays}d {summerBanner.summerBannerCountdownHours}h {summerBanner.summerBannerCountdownMinutes}m {summerBanner.summerBannerCountdownSeconds}s</p>
+                {summerBanner.summerBannerLinkText && (
+                  <p><strong>Link:</strong> {summerBanner.summerBannerLinkText} → {summerBanner.summerBannerLinkUrl || '(no URL)'}</p>
+                )}
+                {(summerBanner.summerBannerStartDate || summerBanner.summerBannerEndDate) && (
+                  <p className="text-sm text-gray-500">
+                    <strong>Schedule:</strong>{' '}
+                    {summerBanner.summerBannerStartDate && `From: ${new Date(summerBanner.summerBannerStartDate).toLocaleDateString()}`}
+                    {summerBanner.summerBannerStartDate && summerBanner.summerBannerEndDate && ' — '}
+                    {summerBanner.summerBannerEndDate && `To: ${new Date(summerBanner.summerBannerEndDate).toLocaleDateString()}`}
+                  </p>
+                )}
+                {(summerBanner.summerBannerBgColor || summerBanner.summerBannerTextColor) && (
+                  <div className="flex items-center gap-3">
+                    <strong className="text-sm">Colors:</strong>
+                    {summerBanner.summerBannerBgColor && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: summerBanner.summerBannerBgColor }} />
+                        <span className="text-xs text-gray-500">BG</span>
+                      </div>
+                    )}
+                    {summerBanner.summerBannerTextColor && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: summerBanner.summerBannerTextColor }} />
+                        <span className="text-xs text-gray-500">Text</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {summerBanner.summerBannerPriority > 0 && (
+                  <p className="text-sm"><strong>Priority:</strong> {summerBanner.summerBannerPriority}</p>
+                )}
                 {summerBanner.summerBannerBackgroundImage && (
                   <div className="mt-4">
                     <img
@@ -1667,6 +1882,129 @@ const DashboardManager = () => {
                   <p className="text-xs text-gray-500 mt-1">Darkness of overlay: {editingLandingPage.landingPageOverlayOpacity}% (0=transparent, 100=opaque)</p>
                 </div>
 
+                {/* Link Settings */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Text (optional)</label>
+                    <input
+                      type="text"
+                      value={editingLandingPage.landingPageLinkText || ''}
+                      onChange={(e) => handleLandingPageChange('landingPageLinkText', e.target.value)}
+                      placeholder="e.g., Explore More, Learn More"
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link URL (optional)</label>
+                    <input
+                      type="text"
+                      value={editingLandingPage.landingPageLinkUrl || ''}
+                      onChange={(e) => handleLandingPageChange('landingPageLinkUrl', e.target.value)}
+                      placeholder="e.g., /about or /products?new=true"
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Schedule */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date (optional)</label>
+                    <input
+                      type="datetime-local"
+                      value={editingLandingPage.landingPageStartDate || ''}
+                      onChange={(e) => handleLandingPageChange('landingPageStartDate', e.target.value || null)}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty to show immediately</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date (optional)</label>
+                    <input
+                      type="datetime-local"
+                      value={editingLandingPage.landingPageEndDate || ''}
+                      onChange={(e) => handleLandingPageChange('landingPageEndDate', e.target.value || null)}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
+                  </div>
+                </div>
+
+                {/* Custom Colors & Priority */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={editingLandingPage.landingPageBgColor || '#000000'}
+                        onChange={(e) => handleLandingPageChange('landingPageBgColor', e.target.value)}
+                        className="w-10 h-10 rounded border cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={editingLandingPage.landingPageBgColor || ''}
+                        onChange={(e) => handleLandingPageChange('landingPageBgColor', e.target.value)}
+                        placeholder="#000000"
+                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Overlay/accent color override</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={editingLandingPage.landingPageTextColor || '#ffffff'}
+                        onChange={(e) => handleLandingPageChange('landingPageTextColor', e.target.value)}
+                        className="w-10 h-10 rounded border cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={editingLandingPage.landingPageTextColor || ''}
+                        onChange={(e) => handleLandingPageChange('landingPageTextColor', e.target.value)}
+                        placeholder="#ffffff"
+                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Hero text color override</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <input
+                      type="number"
+                      value={editingLandingPage.landingPagePriority}
+                      onChange={(e) => handleLandingPageChange('landingPagePriority', parseInt(e.target.value) || 0)}
+                      min={0}
+                      max={100}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Higher = shown first</p>
+                  </div>
+                </div>
+
+                {/* Hero Preview */}
+                {(editingLandingPage.landingPageBgColor || editingLandingPage.landingPageTextColor) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Color Preview</label>
+                    <div
+                      className="rounded-lg px-4 py-3 text-sm font-medium text-center"
+                      style={{
+                        backgroundColor: editingLandingPage.landingPageBgColor || '#000000',
+                        color: editingLandingPage.landingPageTextColor || '#ffffff',
+                      }}
+                    >
+                      <span className="font-bold text-lg">{editingLandingPage.landingPageTitle || 'Hero Title'}</span>
+                      <br />
+                      <span>{editingLandingPage.landingPageSubtitle || 'Subtitle text'}</span>
+                      {editingLandingPage.landingPageLinkText && (
+                        <span className="ml-2 underline font-semibold">{editingLandingPage.landingPageLinkText}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     onClick={saveLandingPage}
@@ -1761,6 +2099,37 @@ const DashboardManager = () => {
                       </div>
                     )}
                   </>
+                )}
+                {landingPage.landingPageLinkText && (
+                  <p className="text-sm mt-2"><strong>Link:</strong> {landingPage.landingPageLinkText} → {landingPage.landingPageLinkUrl || '(no URL)'}</p>
+                )}
+                {(landingPage.landingPageStartDate || landingPage.landingPageEndDate) && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    <strong>Schedule:</strong>{' '}
+                    {landingPage.landingPageStartDate && `From: ${new Date(landingPage.landingPageStartDate).toLocaleDateString()}`}
+                    {landingPage.landingPageStartDate && landingPage.landingPageEndDate && ' — '}
+                    {landingPage.landingPageEndDate && `To: ${new Date(landingPage.landingPageEndDate).toLocaleDateString()}`}
+                  </p>
+                )}
+                {(landingPage.landingPageBgColor || landingPage.landingPageTextColor) && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <strong className="text-sm">Colors:</strong>
+                    {landingPage.landingPageBgColor && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: landingPage.landingPageBgColor }} />
+                        <span className="text-xs text-gray-500">BG</span>
+                      </div>
+                    )}
+                    {landingPage.landingPageTextColor && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: landingPage.landingPageTextColor }} />
+                        <span className="text-xs text-gray-500">Text</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {landingPage.landingPagePriority > 0 && (
+                  <p className="text-sm mt-1"><strong>Priority:</strong> {landingPage.landingPagePriority}</p>
                 )}
               </div>
             )}

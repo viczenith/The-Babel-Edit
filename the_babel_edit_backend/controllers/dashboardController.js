@@ -153,6 +153,13 @@ export const updateSummerBanner = async (req, res) => {
       summerBannerCountdownMinutes,
       summerBannerCountdownSeconds,
       summerBannerBackgroundImage,
+      summerBannerLinkText,
+      summerBannerLinkUrl,
+      summerBannerStartDate,
+      summerBannerEndDate,
+      summerBannerBgColor,
+      summerBannerTextColor,
+      summerBannerPriority,
     } = req.body;
 
     let config = await prisma.dashboardConfig.findFirst();
@@ -168,6 +175,13 @@ export const updateSummerBanner = async (req, res) => {
           summerBannerCountdownMinutes: summerBannerCountdownMinutes || 0,
           summerBannerCountdownSeconds: summerBannerCountdownSeconds || 0,
           summerBannerBackgroundImage: summerBannerBackgroundImage || null,
+          summerBannerLinkText: summerBannerLinkText || null,
+          summerBannerLinkUrl: summerBannerLinkUrl || null,
+          summerBannerStartDate: summerBannerStartDate ? new Date(summerBannerStartDate) : null,
+          summerBannerEndDate: summerBannerEndDate ? new Date(summerBannerEndDate) : null,
+          summerBannerBgColor: summerBannerBgColor || null,
+          summerBannerTextColor: summerBannerTextColor || null,
+          summerBannerPriority: summerBannerPriority || 0,
         },
       });
     } else {
@@ -182,6 +196,13 @@ export const updateSummerBanner = async (req, res) => {
           summerBannerCountdownMinutes: summerBannerCountdownMinutes !== undefined ? summerBannerCountdownMinutes : config.summerBannerCountdownMinutes,
           summerBannerCountdownSeconds: summerBannerCountdownSeconds !== undefined ? summerBannerCountdownSeconds : config.summerBannerCountdownSeconds,
           summerBannerBackgroundImage: summerBannerBackgroundImage !== undefined ? summerBannerBackgroundImage : config.summerBannerBackgroundImage,
+          summerBannerLinkText: summerBannerLinkText !== undefined ? (summerBannerLinkText || null) : config.summerBannerLinkText,
+          summerBannerLinkUrl: summerBannerLinkUrl !== undefined ? (summerBannerLinkUrl || null) : config.summerBannerLinkUrl,
+          summerBannerStartDate: summerBannerStartDate !== undefined ? (summerBannerStartDate ? new Date(summerBannerStartDate) : null) : config.summerBannerStartDate,
+          summerBannerEndDate: summerBannerEndDate !== undefined ? (summerBannerEndDate ? new Date(summerBannerEndDate) : null) : config.summerBannerEndDate,
+          summerBannerBgColor: summerBannerBgColor !== undefined ? (summerBannerBgColor || null) : config.summerBannerBgColor,
+          summerBannerTextColor: summerBannerTextColor !== undefined ? (summerBannerTextColor || null) : config.summerBannerTextColor,
+          summerBannerPriority: summerBannerPriority !== undefined ? (parseInt(summerBannerPriority) || 0) : config.summerBannerPriority,
         },
       });
     }
@@ -299,6 +320,13 @@ export const updateLandingPage = async (req, res) => {
       landingPageButtonText,
       landingPageButtonLink,
       landingPageOverlayOpacity,
+      landingPageLinkText,
+      landingPageLinkUrl,
+      landingPageStartDate,
+      landingPageEndDate,
+      landingPageBgColor,
+      landingPageTextColor,
+      landingPagePriority,
     } = req.body;
 
     let config = await prisma.dashboardConfig.findFirst();
@@ -314,6 +342,13 @@ export const updateLandingPage = async (req, res) => {
           landingPageButtonText: landingPageButtonText || "Shop Now",
           landingPageButtonLink: landingPageButtonLink || "/products",
           landingPageOverlayOpacity: landingPageOverlayOpacity || 40,
+          landingPageLinkText: landingPageLinkText || null,
+          landingPageLinkUrl: landingPageLinkUrl || null,
+          landingPageStartDate: landingPageStartDate ? new Date(landingPageStartDate) : null,
+          landingPageEndDate: landingPageEndDate ? new Date(landingPageEndDate) : null,
+          landingPageBgColor: landingPageBgColor || null,
+          landingPageTextColor: landingPageTextColor || null,
+          landingPagePriority: landingPagePriority || 0,
         },
       });
     } else {
@@ -328,6 +363,13 @@ export const updateLandingPage = async (req, res) => {
           landingPageButtonText: landingPageButtonText !== undefined ? landingPageButtonText : config.landingPageButtonText,
           landingPageButtonLink: landingPageButtonLink !== undefined ? landingPageButtonLink : config.landingPageButtonLink,
           landingPageOverlayOpacity: landingPageOverlayOpacity !== undefined ? landingPageOverlayOpacity : config.landingPageOverlayOpacity,
+          landingPageLinkText: landingPageLinkText !== undefined ? (landingPageLinkText || null) : config.landingPageLinkText,
+          landingPageLinkUrl: landingPageLinkUrl !== undefined ? (landingPageLinkUrl || null) : config.landingPageLinkUrl,
+          landingPageStartDate: landingPageStartDate !== undefined ? (landingPageStartDate ? new Date(landingPageStartDate) : null) : config.landingPageStartDate,
+          landingPageEndDate: landingPageEndDate !== undefined ? (landingPageEndDate ? new Date(landingPageEndDate) : null) : config.landingPageEndDate,
+          landingPageBgColor: landingPageBgColor !== undefined ? (landingPageBgColor || null) : config.landingPageBgColor,
+          landingPageTextColor: landingPageTextColor !== undefined ? (landingPageTextColor || null) : config.landingPageTextColor,
+          landingPagePriority: landingPagePriority !== undefined ? (parseInt(landingPagePriority) || 0) : config.landingPagePriority,
         },
       });
     }
