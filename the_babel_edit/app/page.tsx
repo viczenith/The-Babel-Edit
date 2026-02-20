@@ -124,8 +124,6 @@ export default function LandingPage() {
         </nav>
       </header>
 
-      {/* Announcement Bar — forcefully shows dynamic bg color */}
-      <AnnouncementBar variant="banner" locale={currentLocale} />
 
       <main className={styles.main}>
         {/* Hero Section - Three Modes */}
@@ -295,6 +293,8 @@ export default function LandingPage() {
             </div>
           </section>
         )}
+      {/* Announcement Bar — forcefully shows dynamic bg color */}
+      <AnnouncementBar variant="banner" locale={currentLocale} />
 
         <section className={styles.features}>
           <div className={styles.featureCard}>
