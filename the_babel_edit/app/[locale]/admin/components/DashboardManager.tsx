@@ -1495,75 +1495,8 @@ const DashboardManager = () => {
                   </div>
                 </div>
 
-                {/* Link Settings */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Text (optional)</label>
-                    <input
-                      type="text"
-                      value={editingBanner.summerBannerLinkText || ''}
-                      onChange={(e) => handleBannerChange('summerBannerLinkText', e.target.value)}
-                      placeholder="e.g., Shop Now, View Collection"
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link URL (optional)</label>
-                    <input
-                      type="text"
-                      value={editingBanner.summerBannerLinkUrl || ''}
-                      onChange={(e) => handleBannerChange('summerBannerLinkUrl', e.target.value)}
-                      placeholder="e.g., /products?category=summer"
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Schedule */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date (optional)</label>
-                    <input
-                      type="datetime-local"
-                      value={editingBanner.summerBannerStartDate || ''}
-                      onChange={(e) => handleBannerChange('summerBannerStartDate', e.target.value || null)}
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty to show immediately</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date (optional)</label>
-                    <input
-                      type="datetime-local"
-                      value={editingBanner.summerBannerEndDate || ''}
-                      onChange={(e) => handleBannerChange('summerBannerEndDate', e.target.value || null)}
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
-                  </div>
-                </div>
-
                 {/* Custom Colors & Priority */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={editingBanner.summerBannerBgColor || '#000000'}
-                        onChange={(e) => handleBannerChange('summerBannerBgColor', e.target.value)}
-                        className="w-10 h-10 rounded border cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={editingBanner.summerBannerBgColor || ''}
-                        onChange={(e) => handleBannerChange('summerBannerBgColor', e.target.value)}
-                        placeholder="#000000"
-                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Overlay/accent color override</p>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
                     <div className="flex items-center gap-2">
@@ -1882,75 +1815,8 @@ const DashboardManager = () => {
                   <p className="text-xs text-gray-500 mt-1">Darkness of overlay: {editingLandingPage.landingPageOverlayOpacity}% (0=transparent, 100=opaque)</p>
                 </div>
 
-                {/* Link Settings */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Text (optional)</label>
-                    <input
-                      type="text"
-                      value={editingLandingPage.landingPageLinkText || ''}
-                      onChange={(e) => handleLandingPageChange('landingPageLinkText', e.target.value)}
-                      placeholder="e.g., Explore More, Learn More"
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link URL (optional)</label>
-                    <input
-                      type="text"
-                      value={editingLandingPage.landingPageLinkUrl || ''}
-                      onChange={(e) => handleLandingPageChange('landingPageLinkUrl', e.target.value)}
-                      placeholder="e.g., /about or /products?new=true"
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Schedule */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date (optional)</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLandingPage.landingPageStartDate || ''}
-                      onChange={(e) => handleLandingPageChange('landingPageStartDate', e.target.value || null)}
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty to show immediately</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date (optional)</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLandingPage.landingPageEndDate || ''}
-                      onChange={(e) => handleLandingPageChange('landingPageEndDate', e.target.value || null)}
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
-                  </div>
-                </div>
-
                 {/* Custom Colors & Priority */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={editingLandingPage.landingPageBgColor || '#000000'}
-                        onChange={(e) => handleLandingPageChange('landingPageBgColor', e.target.value)}
-                        className="w-10 h-10 rounded border cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={editingLandingPage.landingPageBgColor || ''}
-                        onChange={(e) => handleLandingPageChange('landingPageBgColor', e.target.value)}
-                        placeholder="#000000"
-                        className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Overlay/accent color override</p>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
                     <div className="flex items-center gap-2">
