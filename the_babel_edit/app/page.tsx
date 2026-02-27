@@ -125,7 +125,6 @@ export default function LandingPage() {
         </nav>
       </header>
 
-
       <main className={styles.main}>
         {/* Hero Section - Three Modes */}
         {!loading && isHeroScheduled() && landingData?.landingPageBackgroundMode === 'VIDEO' && landingData.landingPageVideoUrl ? (
