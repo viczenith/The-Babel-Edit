@@ -109,8 +109,7 @@ export const useProductCategories = (options: { includeInactive?: boolean } = {}
       if (err instanceof Error && err.message.includes('aborted')) return;
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch categories';
       setError(errorMessage);
-      console.error('Error fetching product categories:', err);
-      // Return empty array on error but don't break the UI
+      // Silent — backend may not be running locally
       setCategories([]);
     } finally {
       setLoading(false);

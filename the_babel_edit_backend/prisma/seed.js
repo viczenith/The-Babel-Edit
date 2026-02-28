@@ -27,26 +27,15 @@ async function main() {
 
   // Create Users
   console.log('👥 Seeding users...');
-  const superAdminPassword = await bcrypt.hash('B@belSup3r!2026x', 12);
-  const adminPassword = await bcrypt.hash('B@belAdm1n!2026x', 12);
+  const superAdminPassword = await bcrypt.hash('Cyn7h!@Ekh@t0R#2026$X', 12);
 
   const users = [
     {
       email: 'superadmin@thebabeledit.com',
       password: superAdminPassword,
-      firstName: 'Admin',
-      lastName: 'User',
+      firstName: 'Cynthia',
+      lastName: 'Ekhator',
       role: 'SUPER_ADMIN',
-      isVerified: true,
-      isAgree: true
-    },
-    {
-      email: 'admin@thebabeledit.com',
-      password: adminPassword,
-      firstName: 'Isaac',
-      lastName: 'Dalyop',
-      phone: '+2347060737799',
-      role: 'ADMIN',
       isVerified: true,
       isAgree: true
     }
@@ -222,9 +211,8 @@ async function main() {
   console.log(`   - ${testimonials.length} testimonials`);
   console.log(`   - 0 products (all products to be created via Admin Dashboard)`);
   console.log('');
-  console.log('🔐 Test Credentials:');
-  console.log('   Admin (Super Admin): admin@babeledit.com / password123');
-  console.log('   Admin (Admin): isiquedan@gmail.com / password123');
+  console.log('🔐 Credentials:');
+  console.log('   Super Admin: superadmin@thebabeledit.com');
   console.log('');
   console.log('📦 Collections Created:');
   console.log('   - Clothes (General clothing items)');

@@ -151,14 +151,14 @@ export default function LoginPage() {
               <img src="/images/google.svg" alt="Google" />
               Google
             </button>
-            <button type="button" className={styles.socialBtn} disabled={loading} onClick={() => toast('Facebook login coming soon', { icon: '🔜' })}>
+            {/* <button type="button" className={styles.socialBtn} disabled={loading} onClick={() => toast('Facebook login coming soon', { icon: '🔜' })}>
               <img src="/images/facebook.svg" alt="Facebook" />
               Facebook
             </button>
             <button type="button" className={styles.socialBtn} disabled={loading} onClick={() => toast('Apple login coming soon', { icon: '🔜' })}>
               <img src="/images/apple.svg" alt="Apple" />
               Apple
-            </button>
+            </button> */}
           </div>
           
           <div className={styles.signupRow}>

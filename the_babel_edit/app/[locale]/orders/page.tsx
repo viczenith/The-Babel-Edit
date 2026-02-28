@@ -672,7 +672,7 @@ const OrdersPage = () => {
                   <Package className="w-12 h-12 text-blue-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">No orders yet</h2>
-                <p className="text-gray-500 max-w-sm mx-auto mb-8">
+                <p className="text-gray-500 max-w-sm mx-auto mb-8 text-center">
                   When you place your first order, it will show up here. Start exploring our collection!
                 </p>
                 <Link

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Edit2, X, Plus, Save, AlertCircle, Upload } from 'lucide-react';
+import { Edit2, X, Plus, Save, AlertCircle, Upload, Eye, EyeOff } from 'lucide-react';
 import { apiRequest, API_ENDPOINTS } from '@/app/lib/api';
 import { commonClasses } from '@/app/utils/designSystem';
 // import Button from '@/components/ui/button';
@@ -137,13 +137,61 @@ const DashboardManager = () => {
     name: ''
   });
 
+  // Section Visibility State
+  const [sectionVisibility, setSectionVisibility] = useState({
+    heroSlides: true,
+    highlightCards: true,
+    summerBanner: true,
+    landingPageHero: true,
+  });
+  const [visibilityLoading, setVisibilityLoading] = useState<string | null>(null);
+
   // Load data on mount
   useEffect(() => {
     fetchHeroSlides();
     fetchHighlightCards();
     fetchSummerBanner();
     fetchLandingPage();
+    fetchVisibility();
   }, []);
+
+  // ==== SECTION VISIBILITY ====
+  const fetchVisibility = async () => {
+    try {
+      const data = await apiRequest<any>(API_ENDPOINTS.DASHBOARD.GET_CONFIG);
+      if (data) {
+        setSectionVisibility({
+          heroSlides: data.heroSlidesVisible !== false,
+          highlightCards: data.highlightCardsVisible !== false,
+          summerBanner: data.summerBannerVisible !== false,
+          landingPageHero: data.landingPageHeroVisible !== false,
+        });
+      }
+    } catch {
+      // Silent — use defaults
+    }
+  };
+
+  const toggleVisibility = async (section: 'heroSlides' | 'highlightCards' | 'summerBanner' | 'landingPageHero') => {
+    const newValue = !sectionVisibility[section];
+    setVisibilityLoading(section);
+    // Optimistic update
+    setSectionVisibility(prev => ({ ...prev, [section]: newValue }));
+    try {
+      await apiRequest(API_ENDPOINTS.DASHBOARD.TOGGLE_VISIBILITY, {
+        method: 'POST',
+        body: { section, visible: newValue },
+        requireAuth: true,
+      });
+      toast.success(`Section ${newValue ? 'visible' : 'hidden'} on homepage`);
+    } catch {
+      // Revert on failure
+      setSectionVisibility(prev => ({ ...prev, [section]: !newValue }));
+      toast.error('Failed to update visibility');
+    } finally {
+      setVisibilityLoading(null);
+    }
+  };
 
   // ==== IMAGE UPLOAD HELPERS ====
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -1100,22 +1148,40 @@ const DashboardManager = () => {
       {/* ===== HERO SLIDES SECTION ===== */}
       <section className={commonClasses.card}>
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Hero Carousel Slides</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage the main carousel slides displayed at the top of the homepage</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Hero Carousel Slides</h2>
+              <p className="text-sm text-gray-500 mt-1">Manage the main carousel slides displayed at the top of the homepage</p>
+            </div>
           </div>
-          <Button
-            onClick={addNewSlide}
-            variant="primary"
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> Add Slide
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Visibility Toggle */}
+            <button
+              onClick={() => toggleVisibility('heroSlides')}
+              disabled={visibilityLoading === 'heroSlides'}
+              className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${
+                sectionVisibility.heroSlides
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+              } ${visibilityLoading === 'heroSlides' ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+              title={sectionVisibility.heroSlides ? 'Click to hide on homepage' : 'Click to show on homepage'}
+            >
+              {sectionVisibility.heroSlides ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              {sectionVisibility.heroSlides ? 'Visible' : 'Hidden'}
+            </button>
+            <Button
+              onClick={addNewSlide}
+              variant="primary"
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Slide
+            </Button>
+          </div>
         </div>
 
         {heroLoading ? (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         ) : (
           <>
@@ -1174,7 +1240,7 @@ const DashboardManager = () => {
                           className="flex items-center gap-2"
                           disabled={heroUploading || (!!editingSlide && (!editingSlide.image || !editingSlide.alt || editingSlide.image.toString().trim() === '' || editingSlide.alt.toString().trim() === '')) || Object.keys(heroErrors).length > 0}
                         >
-                          <Save className="w-4 h-4" /> Save
+                          <Save className="w-4 h-4" /> Save Slide
                         </Button>
                         <Button
                           onClick={() => setEditingSlide(null)}
@@ -1186,8 +1252,9 @@ const DashboardManager = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex gap-4">
-                      <div className="w-20 h-20 rounded overflow-hidden bg-gray-100 flex-shrink-0 border">
+                    <div className="space-y-3">
+                      {/* Slide Mini Preview */}
+                      <div className="relative rounded-lg overflow-hidden h-36 bg-gray-100">
                         {slide.image ? (
                           <img
                             src={slide.image}
@@ -1195,24 +1262,40 @@ const DashboardManager = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No image</div>
+                          <div className="w-full h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50">No image uploaded</div>
+                        )}
+                        {slide.image && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        )}
+                        {slide.alt && slide.image && (
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <p className="text-white font-semibold text-sm drop-shadow-md line-clamp-1">{slide.alt}</p>
+                            {slide.description && (
+                              <p className="text-white/80 text-xs mt-0.5 drop-shadow-md line-clamp-1">{slide.description}</p>
+                            )}
+                          </div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{slide.alt || 'Untitled'}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{slide.description}</p>
-                        <div className="flex gap-2 mt-3">
+                      {/* Slide Details */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm">{slide.alt || <span className="text-gray-400 italic">No alt text</span>}</h3>
+                          {slide.description && !slide.image && (
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{slide.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 shrink-0 ml-3">
                           <button
                             onClick={() => startEditSlide(slide)}
-                            className="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
+                            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1.5 font-medium"
                           >
-                            <Edit2 className="w-3 h-3" /> Edit
+                            <Edit2 className="w-3.5 h-3.5" /> Edit
                           </button>
                           <button
                             onClick={() => removeSlide(slide.id)}
-                            className="px-3 py-1 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+                            className="px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors flex items-center gap-1.5 font-medium"
                           >
-                            <X className="w-3 h-3" /> Remove
+                            <X className="w-3.5 h-3.5" /> Remove
                           </button>
                         </div>
                       </div>
@@ -1228,24 +1311,42 @@ const DashboardManager = () => {
       {/* ===== HIGHLIGHT CARDS SECTION ===== */}
       <section className={commonClasses.card}>
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Highlight Cards (4 Featured Sections)</h2>
-            <p className="text-sm text-gray-500 mt-1">These cards appear in the "This Week's Highlight" section with asymmetric layout</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Highlight Cards (4 Featured Sections)</h2>
+              <p className="text-sm text-gray-500 mt-1">These cards appear in the "This Week's Highlight" section with asymmetric layout</p>
+            </div>
           </div>
-          {highlightCards.length < 4 && (
-            <Button
-              onClick={addNewCard}
-              variant="primary"
-              className="flex items-center gap-2"
+          <div className="flex items-center gap-3">
+            {/* Visibility Toggle */}
+            <button
+              onClick={() => toggleVisibility('highlightCards')}
+              disabled={visibilityLoading === 'highlightCards'}
+              className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${
+                sectionVisibility.highlightCards
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+              } ${visibilityLoading === 'highlightCards' ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+              title={sectionVisibility.highlightCards ? 'Click to hide on homepage' : 'Click to show on homepage'}
             >
-              <Plus className="w-4 h-4" /> Add Card
-            </Button>
-          )}
+              {sectionVisibility.highlightCards ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              {sectionVisibility.highlightCards ? 'Visible' : 'Hidden'}
+            </button>
+            {highlightCards.length < 4 && (
+              <Button
+                onClick={addNewCard}
+                variant="primary"
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add Card
+              </Button>
+            )}
+          </div>
         </div>
 
         {cardsLoading ? (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         ) : (
           <>
@@ -1318,41 +1419,59 @@ const DashboardManager = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex gap-6">
-                      <div className="w-32 h-32 rounded overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-300">
+                    <div className="space-y-3">
+                      {/* Card Mini Preview */}
+                      <div className="relative rounded-lg overflow-hidden h-40 bg-gray-100">
                         {card.image && card.image.trim() ? (
                           <img
                             src={card.image}
                             alt={card.title || 'Card image'}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              console.error('Image failed to load:', card.image);
                               (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Crect fill="%23f3f4f6" width="24" height="24"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="10" fill="%239ca3af"%3E✕%3C/text%3E%3C/svg%3E';
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-50">No image</div>
+                          <div className="w-full h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50">No image uploaded</div>
                         )}
+                        {card.image && card.image.trim() && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        )}
+                        {card.title && card.title.trim() && card.image && card.image.trim() && (
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <p className="text-white font-bold text-base drop-shadow-md line-clamp-1">{card.title}</p>
+                            {card.description && card.description.trim() && (
+                              <p className="text-white/80 text-xs mt-0.5 drop-shadow-md line-clamp-1">{card.description}</p>
+                            )}
+                          </div>
+                        )}
+                        {/* Position badge */}
+                        <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                          Position {card.position || 0}
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {card.title && card.title.trim() ? card.title : <span className="text-gray-400 italic">Untitled Card</span>}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {card.description && card.description.trim() ? card.description : <span className="text-gray-400 italic">No description</span>}
-                        </p>
-                        <div className="flex gap-2 mt-4">
+                      {/* Card Details */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-semibold text-gray-900">
+                            {card.title && card.title.trim() ? card.title : <span className="text-gray-400 italic">Untitled Card</span>}
+                          </h3>
+                          {card.description && card.description.trim() && !card.image && (
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{card.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 shrink-0 ml-3">
                           <button
                             onClick={() => startEditCard(card)}
-                            className="px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-2 font-medium"
+                            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1.5 font-medium"
                           >
-                            <Edit2 className="w-4 h-4" /> Edit
+                            <Edit2 className="w-3.5 h-3.5" /> Edit
                           </button>
                           <button
                             onClick={() => removeCard(card.id)}
-                            className="px-4 py-2 text-sm bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors flex items-center gap-2 font-medium"
+                            className="px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors flex items-center gap-1.5 font-medium"
                           >
-                            <X className="w-4 h-4" /> Delete
+                            <X className="w-3.5 h-3.5" /> Delete
                           </button>
                         </div>
                       </div>
@@ -1372,18 +1491,36 @@ const DashboardManager = () => {
             <h2 className="text-2xl font-bold text-gray-900">Summer Collection Banner</h2>
             <p className="text-sm text-gray-500 mt-1">Promotional banner with countdown timer displayed mid-page</p>
           </div>
-          <Button
-            onClick={() => setEditingBanner(summerBanner)}
-            variant="primary"
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" /> Edit
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Visibility Toggle */}
+            <button
+              onClick={() => toggleVisibility('summerBanner')}
+              disabled={visibilityLoading === 'summerBanner'}
+              className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${
+                sectionVisibility.summerBanner
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+              } ${visibilityLoading === 'summerBanner' ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+              title={sectionVisibility.summerBanner ? 'Click to hide on homepage' : 'Click to show on homepage'}
+            >
+              {sectionVisibility.summerBanner ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              {sectionVisibility.summerBanner ? 'Visible' : 'Hidden'}
+            </button>
+            {!editingBanner && (
+              <Button
+                onClick={() => setEditingBanner(summerBanner)}
+                variant="primary"
+                className="flex items-center gap-2"
+              >
+                <Edit2 className="w-4 h-4" /> Edit Banner
+              </Button>
+            )}
+          </div>
         </div>
 
         {bannerLoading ? (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         ) : (
           <>
@@ -1530,34 +1667,60 @@ const DashboardManager = () => {
                   </div>
                 </div>
 
-                {/* Banner Preview */}
-                {(editingBanner.summerBannerBgColor || editingBanner.summerBannerTextColor) && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Color Preview</label>
-                    <div
-                      className="rounded-lg px-4 py-3 text-sm font-medium text-center"
-                      style={{
-                        backgroundColor: editingBanner.summerBannerBgColor || '#000000',
-                        color: editingBanner.summerBannerTextColor || '#ffffff',
-                      }}
-                    >
-                      <span className="font-bold">{editingBanner.summerBannerTitle || 'Banner Title'}</span>
-                      <span className="ml-2">{editingBanner.summerBannerDescription || 'Description text'}</span>
-                      {editingBanner.summerBannerLinkText && (
-                        <span className="ml-2 underline font-semibold">{editingBanner.summerBannerLinkText}</span>
-                      )}
+                {/* Live Edit Preview */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Live Preview</label>
+                  <div className="relative rounded-xl overflow-hidden h-44 bg-gray-900">
+                    {editingBanner.summerBannerBackgroundImage && (
+                      <img
+                        src={editingBanner.summerBannerBackgroundImage}
+                        alt="Preview"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0" style={{
+                      background: editingBanner.summerBannerBgColor
+                        ? `linear-gradient(to right, ${editingBanner.summerBannerBgColor}99, ${editingBanner.summerBannerBgColor}66, transparent)`
+                        : 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.3), transparent)'
+                    }} />
+                    <div className="absolute inset-0 flex items-center p-6">
+                      <div className="max-w-[60%]">
+                        <p className="font-bold text-lg drop-shadow-md line-clamp-1" style={{ color: editingBanner.summerBannerTextColor || '#fff' }}>
+                          {editingBanner.summerBannerTitle || 'Banner Title'}
+                        </p>
+                        <p className="text-xs mt-1 opacity-90 drop-shadow-md line-clamp-2" style={{ color: editingBanner.summerBannerTextColor || '#fff' }}>
+                          {editingBanner.summerBannerDescription || 'Description text'}
+                        </p>
+                        <span className="inline-block mt-2 px-3 py-1 bg-white text-black rounded-full text-[10px] font-bold">
+                          {editingBanner.summerBannerButtonText || 'Button'}
+                        </span>
+                      </div>
+                      <div className="ml-auto flex gap-1">
+                        {[
+                          { val: editingBanner.summerBannerCountdownDays, label: 'D' },
+                          { val: editingBanner.summerBannerCountdownHours, label: 'H' },
+                          { val: editingBanner.summerBannerCountdownMinutes, label: 'M' },
+                        ].map((t, i) => (
+                          <div key={i} className="text-center bg-black/40 backdrop-blur-sm px-1.5 py-1 rounded border border-white/20">
+                            <div className="text-sm font-bold" style={{ color: editingBanner.summerBannerTextColor || '#fff' }}>
+                              {String(t.val).padStart(2, '0')}
+                            </div>
+                            <div className="text-[8px] opacity-70" style={{ color: editingBanner.summerBannerTextColor || '#fff' }}>{t.label}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-2 border-t border-gray-200">
                   <Button
                     onClick={saveSummerBanner}
                     variant="primary"
                     className="flex items-center gap-2"
                     disabled={bannerUploading || !editingBanner.summerBannerTitle.trim() || !editingBanner.summerBannerDescription.trim() || !editingBanner.summerBannerButtonText.trim() || !editingBanner.summerBannerBackgroundImage.toString().trim() || Object.keys(bannerErrors).length > 0}
                   >
-                    <Save className="w-4 h-4" /> Save Changes
+                    <Save className="w-4 h-4" /> Save Banner
                   </Button>
                   <Button
                     onClick={() => setEditingBanner(null)}
@@ -1568,49 +1731,85 @@ const DashboardManager = () => {
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-                <p><strong>Title:</strong> {summerBanner.summerBannerTitle}</p>
-                <p><strong>Description:</strong> {summerBanner.summerBannerDescription}</p>
-                <p><strong>Button:</strong> {summerBanner.summerBannerButtonText}</p>
-                <p><strong>Countdown:</strong> {summerBanner.summerBannerCountdownDays}d {summerBanner.summerBannerCountdownHours}h {summerBanner.summerBannerCountdownMinutes}m {summerBanner.summerBannerCountdownSeconds}s</p>
-                {summerBanner.summerBannerLinkText && (
-                  <p><strong>Link:</strong> {summerBanner.summerBannerLinkText} → {summerBanner.summerBannerLinkUrl || '(no URL)'}</p>
-                )}
-                {(summerBanner.summerBannerStartDate || summerBanner.summerBannerEndDate) && (
-                  <p className="text-sm text-gray-500">
-                    <strong>Schedule:</strong>{' '}
-                    {summerBanner.summerBannerStartDate && `From: ${new Date(summerBanner.summerBannerStartDate).toLocaleDateString()}`}
-                    {summerBanner.summerBannerStartDate && summerBanner.summerBannerEndDate && ' — '}
-                    {summerBanner.summerBannerEndDate && `To: ${new Date(summerBanner.summerBannerEndDate).toLocaleDateString()}`}
-                  </p>
-                )}
-                {(summerBanner.summerBannerBgColor || summerBanner.summerBannerTextColor) && (
-                  <div className="flex items-center gap-3">
-                    <strong className="text-sm">Colors:</strong>
-                    {summerBanner.summerBannerBgColor && (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: summerBanner.summerBannerBgColor }} />
-                        <span className="text-xs text-gray-500">BG</span>
-                      </div>
-                    )}
-                    {summerBanner.summerBannerTextColor && (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: summerBanner.summerBannerTextColor }} />
-                        <span className="text-xs text-gray-500">Text</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {summerBanner.summerBannerPriority > 0 && (
-                  <p className="text-sm"><strong>Priority:</strong> {summerBanner.summerBannerPriority}</p>
-                )}
-                {summerBanner.summerBannerBackgroundImage && (
-                  <div className="mt-4">
+              <div className="space-y-4">
+                {/* Live Mini Preview */}
+                <div className="relative rounded-xl overflow-hidden h-52 bg-gray-900">
+                  {summerBanner.summerBannerBackgroundImage && (
                     <img
                       src={summerBanner.summerBannerBackgroundImage}
                       alt="Summer banner preview"
-                      className="w-full h-40 object-cover rounded"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
+                  )}
+                  <div className="absolute inset-0" style={{
+                    background: summerBanner.summerBannerBgColor
+                      ? `linear-gradient(to right, ${summerBanner.summerBannerBgColor}99, ${summerBanner.summerBannerBgColor}66, transparent)`
+                      : 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.3), transparent)'
+                  }} />
+                  <div className="absolute inset-0 flex items-center p-6">
+                    <div className="max-w-[60%]">
+                      <p className="font-bold text-xl drop-shadow-md line-clamp-1" style={{ color: summerBanner.summerBannerTextColor || '#fff' }}>
+                        {summerBanner.summerBannerTitle}
+                      </p>
+                      <p className="text-sm mt-1 opacity-90 drop-shadow-md line-clamp-2" style={{ color: summerBanner.summerBannerTextColor || '#fff' }}>
+                        {summerBanner.summerBannerDescription}
+                      </p>
+                      <span className="inline-block mt-3 px-4 py-1.5 bg-white text-black rounded-full text-xs font-bold">
+                        {summerBanner.summerBannerButtonText}
+                      </span>
+                    </div>
+                    {/* Mini Countdown */}
+                    <div className="ml-auto flex gap-1.5">
+                      {[
+                        { val: summerBanner.summerBannerCountdownDays, label: 'D' },
+                        { val: summerBanner.summerBannerCountdownHours, label: 'H' },
+                        { val: summerBanner.summerBannerCountdownMinutes, label: 'M' },
+                      ].map((t, i) => (
+                        <div key={i} className="text-center bg-black/40 backdrop-blur-sm px-2 py-1.5 rounded-md border border-white/20">
+                          <div className="text-lg font-bold" style={{ color: summerBanner.summerBannerTextColor || '#fff' }}>
+                            {String(t.val).padStart(2, '0')}
+                          </div>
+                          <div className="text-[9px] opacity-70" style={{ color: summerBanner.summerBannerTextColor || '#fff' }}>{t.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Title', value: summerBanner.summerBannerTitle },
+                    { label: 'Button', value: summerBanner.summerBannerButtonText },
+                    { label: 'Countdown', value: `${summerBanner.summerBannerCountdownDays}d ${summerBanner.summerBannerCountdownHours}h ${summerBanner.summerBannerCountdownMinutes}m ${summerBanner.summerBannerCountdownSeconds}s` },
+                    { label: 'Priority', value: summerBanner.summerBannerPriority > 0 ? String(summerBanner.summerBannerPriority) : 'Default' },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">{item.label}</p>
+                      <p className="text-sm font-semibold text-gray-900 line-clamp-1">{item.value || '—'}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Additional Info */}
+                {(summerBanner.summerBannerLinkText || summerBanner.summerBannerStartDate || summerBanner.summerBannerEndDate || summerBanner.summerBannerBgColor || summerBanner.summerBannerTextColor) && (
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                    {summerBanner.summerBannerLinkText && (
+                      <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs">{summerBanner.summerBannerLinkText} → {summerBanner.summerBannerLinkUrl || '(no URL)'}</span>
+                    )}
+                    {(summerBanner.summerBannerStartDate || summerBanner.summerBannerEndDate) && (
+                      <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs">
+                        📅 {summerBanner.summerBannerStartDate ? new Date(summerBanner.summerBannerStartDate).toLocaleDateString() : '—'}
+                        {' → '}
+                        {summerBanner.summerBannerEndDate ? new Date(summerBanner.summerBannerEndDate).toLocaleDateString() : '—'}
+                      </span>
+                    )}
+                    {(summerBanner.summerBannerBgColor || summerBanner.summerBannerTextColor) && (
+                      <span className="flex items-center gap-1.5">
+                        {summerBanner.summerBannerBgColor && <span className="w-4 h-4 rounded-full border border-gray-300 inline-block" style={{ backgroundColor: summerBanner.summerBannerBgColor }} />}
+                        {summerBanner.summerBannerTextColor && <span className="w-4 h-4 rounded-full border border-gray-300 inline-block" style={{ backgroundColor: summerBanner.summerBannerTextColor }} />}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1622,17 +1821,39 @@ const DashboardManager = () => {
       {/* ===== LANDING PAGE SECTION ===== */}
       <section className={commonClasses.card}>
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Landing Page Hero Section</h2>
-            <p className="text-sm text-gray-500 mt-1">Customize the landing page with static or video background</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Landing Page Hero Section</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Control the hero area visitors see when they first arrive at your site
+              </p>
+            </div>
           </div>
-          <Button
-            onClick={() => setEditingLandingPage(landingPage)}
-            variant="primary"
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" /> Edit
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Visibility Toggle */}
+            <button
+              onClick={() => toggleVisibility('landingPageHero')}
+              disabled={visibilityLoading === 'landingPageHero'}
+              className={`relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${
+                sectionVisibility.landingPageHero
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+              } ${visibilityLoading === 'landingPageHero' ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
+              title={sectionVisibility.landingPageHero ? 'Click to hide on homepage' : 'Click to show on homepage'}
+            >
+              {sectionVisibility.landingPageHero ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              {sectionVisibility.landingPageHero ? 'Visible' : 'Hidden'}
+            </button>
+            {!editingLandingPage && (
+              <Button
+                onClick={() => setEditingLandingPage(landingPage)}
+                variant="primary"
+                className="flex items-center gap-2"
+              >
+                <Edit2 className="w-4 h-4" /> Edit Hero
+              </Button>
+            )}
+          </div>
         </div>
 
         {landingPageLoading ? (
@@ -1710,51 +1931,51 @@ const DashboardManager = () => {
                 </div>
 
                 <div>
-                  <fieldset className="border border-gray-300 rounded-md p-4 mb-4">
-                    <legend className="text-sm font-medium text-gray-700 px-2">Background Type Mode</legend>
-                    <div className="space-y-3 mt-3">
-                      <div className="flex items-center">
+                  <fieldset className="border border-gray-200 rounded-lg p-4 mb-4 bg-white">
+                    <legend className="text-sm font-semibold text-gray-800 px-2">Background Type</legend>
+                    <div className="space-y-2 mt-3">
+                      <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50" style={editingLandingPage.landingPageBackgroundMode === 'NONE' ? { backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' } : { border: '1px solid transparent' }}>
                         <input
                           type="radio"
-                          id="mode-none"
                           name="backgroundMode"
                           value="NONE"
                           checked={editingLandingPage.landingPageBackgroundMode === 'NONE'}
                           onChange={() => handleLandingPageChange('landingPageBackgroundMode', 'NONE')}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-blue-600 mt-0.5"
                         />
-                        <label htmlFor="mode-none" className="ml-2 text-sm text-gray-700">
-                          <strong>Option 1: None</strong> - Plain color/gradient (default)
-                        </label>
-                      </div>
-                      <div className="flex items-center">
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">Default Branded</span>
+                          <p className="text-xs text-gray-500 mt-0.5">Warm rose/beige gradient with your brand logo</p>
+                        </div>
+                      </label>
+                      <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50" style={editingLandingPage.landingPageBackgroundMode === 'IMAGE' ? { backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' } : { border: '1px solid transparent' }}>
                         <input
                           type="radio"
-                          id="mode-image"
                           name="backgroundMode"
                           value="IMAGE"
                           checked={editingLandingPage.landingPageBackgroundMode === 'IMAGE'}
                           onChange={() => handleLandingPageChange('landingPageBackgroundMode', 'IMAGE')}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-blue-600 mt-0.5"
                         />
-                        <label htmlFor="mode-image" className="ml-2 text-sm text-gray-700">
-                          <strong>Option 2: Static Image</strong> - Background image hero section
-                        </label>
-                      </div>
-                      <div className="flex items-center">
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">Static Image</span>
+                          <p className="text-xs text-gray-500 mt-0.5">Full-screen background image with text overlay</p>
+                        </div>
+                      </label>
+                      <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50" style={editingLandingPage.landingPageBackgroundMode === 'VIDEO' ? { backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' } : { border: '1px solid transparent' }}>
                         <input
                           type="radio"
-                          id="mode-video"
                           name="backgroundMode"
                           value="VIDEO"
                           checked={editingLandingPage.landingPageBackgroundMode === 'VIDEO'}
                           onChange={() => handleLandingPageChange('landingPageBackgroundMode', 'VIDEO')}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-blue-600 mt-0.5"
                         />
-                        <label htmlFor="mode-video" className="ml-2 text-sm text-gray-700">
-                          <strong>Option 3: Dynamic Video</strong> - Full-screen background video with fallback image
-                        </label>
-                      </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">Dynamic Video</span>
+                          <p className="text-xs text-gray-500 mt-0.5">Auto-playing background video with optional fallback image</p>
+                        </div>
+                      </label>
                     </div>
                   </fieldset>
                 </div>
@@ -1850,28 +2071,41 @@ const DashboardManager = () => {
                   </div>
                 </div>
 
-                {/* Hero Preview */}
-                {(editingLandingPage.landingPageBgColor || editingLandingPage.landingPageTextColor) && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Color Preview</label>
-                    <div
-                      className="rounded-lg px-4 py-3 text-sm font-medium text-center"
-                      style={{
-                        backgroundColor: editingLandingPage.landingPageBgColor || '#000000',
-                        color: editingLandingPage.landingPageTextColor || '#ffffff',
-                      }}
-                    >
-                      <span className="font-bold text-lg">{editingLandingPage.landingPageTitle || 'Hero Title'}</span>
-                      <br />
-                      <span>{editingLandingPage.landingPageSubtitle || 'Subtitle text'}</span>
-                      {editingLandingPage.landingPageLinkText && (
-                        <span className="ml-2 underline font-semibold">{editingLandingPage.landingPageLinkText}</span>
-                      )}
+                {/* Live Edit Preview */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Live Preview</label>
+                  <div className="relative rounded-xl overflow-hidden h-44 flex items-center justify-center" style={{
+                    background: editingLandingPage.landingPageBackgroundMode === 'NONE'
+                      ? 'linear-gradient(135deg, #E3CCCB 0%, #E3DACB 50%, #f5e6df 100%)'
+                      : editingLandingPage.landingPageBgColor || '#111827'
+                  }}>
+                    {editingLandingPage.landingPageBackgroundMode === 'IMAGE' && editingLandingPage.landingPageBackgroundImage && (
+                      <img src={editingLandingPage.landingPageBackgroundImage} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    {editingLandingPage.landingPageBackgroundMode === 'VIDEO' && editingLandingPage.landingPageVideoUrl && (
+                      <video src={editingLandingPage.landingPageVideoUrl} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    {editingLandingPage.landingPageBackgroundMode !== 'NONE' && (
+                      <div className="absolute inset-0" style={{ backgroundColor: '#000', opacity: editingLandingPage.landingPageOverlayOpacity / 100 }} />
+                    )}
+                    <div className="relative z-10 text-center px-4">
+                      <p className="font-bold text-lg" style={{ color: editingLandingPage.landingPageBackgroundMode === 'NONE' ? '#0f172a' : (editingLandingPage.landingPageTextColor || '#fff') }}>
+                        {editingLandingPage.landingPageTitle || 'Hero Title'}
+                      </p>
+                      <p className="text-sm mt-1 opacity-80" style={{ color: editingLandingPage.landingPageBackgroundMode === 'NONE' ? '#374151' : (editingLandingPage.landingPageTextColor || '#fff') }}>
+                        {editingLandingPage.landingPageSubtitle || 'Subtitle text'}
+                      </p>
+                      <span className="inline-block mt-3 px-4 py-1.5 rounded-full text-xs font-semibold" style={{
+                        backgroundColor: editingLandingPage.landingPageBackgroundMode === 'NONE' ? '#ef4444' : '#fff',
+                        color: editingLandingPage.landingPageBackgroundMode === 'NONE' ? '#fff' : '#000'
+                      }}>
+                        {editingLandingPage.landingPageButtonText || 'Button'}
+                      </span>
                     </div>
                   </div>
-                )}
+                </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-2 border-t border-gray-200">
                   <Button
                     onClick={saveLandingPage}
                     variant="primary"
@@ -1886,7 +2120,7 @@ const DashboardManager = () => {
                       Object.keys(landingPageErrors).length > 0
                     }
                   >
-                    <Save className="w-4 h-4" /> Save Changes
+                    <Save className="w-4 h-4" /> Save Hero
                   </Button>
                   <Button
                     onClick={() => setEditingLandingPage(null)}
@@ -1897,80 +2131,74 @@ const DashboardManager = () => {
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 rounded-lg space-y-3">
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                  <p className="text-sm font-medium text-blue-900">
-                    {landingPage.landingPageBackgroundMode === 'NONE' && '✅ Option 1: Default Gradient (NONE)'}
-                    {landingPage.landingPageBackgroundMode === 'IMAGE' && '✅ Option 2: Static Image Background'}
-                    {landingPage.landingPageBackgroundMode === 'VIDEO' && '✅ Option 3: Dynamic Video Background'}
-                  </p>
+              <div className="space-y-5">
+                {/* Live Mini Preview */}
+                <div className="relative rounded-xl overflow-hidden h-48 flex items-center justify-center" style={{
+                  background: landingPage.landingPageBackgroundMode === 'NONE'
+                    ? 'linear-gradient(135deg, #E3CCCB 0%, #E3DACB 50%, #f5e6df 100%)'
+                    : landingPage.landingPageBgColor || '#111827'
+                }}>
+                  {landingPage.landingPageBackgroundMode === 'IMAGE' && landingPage.landingPageBackgroundImage && (
+                    <img src={landingPage.landingPageBackgroundImage} alt="Hero preview" className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  {landingPage.landingPageBackgroundMode === 'VIDEO' && landingPage.landingPageVideoUrl && (
+                    <video src={landingPage.landingPageVideoUrl} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  {landingPage.landingPageBackgroundMode !== 'NONE' && (
+                    <div className="absolute inset-0" style={{ backgroundColor: '#000', opacity: landingPage.landingPageOverlayOpacity / 100 }} />
+                  )}
+                  <div className="relative z-10 text-center px-4">
+                    <p className="font-bold text-lg" style={{ color: landingPage.landingPageBackgroundMode === 'NONE' ? '#0f172a' : (landingPage.landingPageTextColor || '#fff') }}>
+                      {landingPage.landingPageTitle}
+                    </p>
+                    <p className="text-sm mt-1 opacity-80" style={{ color: landingPage.landingPageBackgroundMode === 'NONE' ? '#374151' : (landingPage.landingPageTextColor || '#fff') }}>
+                      {landingPage.landingPageSubtitle}
+                    </p>
+                    <span className="inline-block mt-3 px-4 py-1.5 rounded-full text-xs font-semibold" style={{
+                      backgroundColor: landingPage.landingPageBackgroundMode === 'NONE' ? '#ef4444' : '#fff',
+                      color: landingPage.landingPageBackgroundMode === 'NONE' ? '#fff' : '#000'
+                    }}>
+                      {landingPage.landingPageButtonText}
+                    </span>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/90 text-gray-700 shadow-sm">
+                    {landingPage.landingPageBackgroundMode === 'NONE' && 'Default Branded'}
+                    {landingPage.landingPageBackgroundMode === 'IMAGE' && 'Static Image'}
+                    {landingPage.landingPageBackgroundMode === 'VIDEO' && 'Dynamic Video'}
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-600 font-medium">Title</p>
-                    <p className="text-gray-900">{landingPage.landingPageTitle}</p>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">Title</p>
+                    <p className="text-gray-900 font-medium">{landingPage.landingPageTitle}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-600 font-medium">Subtitle</p>
-                    <p className="text-gray-900">{landingPage.landingPageSubtitle}</p>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">Subtitle</p>
+                    <p className="text-gray-900 font-medium">{landingPage.landingPageSubtitle}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-600 font-medium">Button Text</p>
-                    <p className="text-gray-900">{landingPage.landingPageButtonText}</p>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">Button</p>
+                    <p className="text-gray-900 font-medium">{landingPage.landingPageButtonText} → {landingPage.landingPageButtonLink}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-600 font-medium">Button Link</p>
-                    <p className="text-gray-900">{landingPage.landingPageButtonLink}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-gray-600 font-medium text-sm mb-2">Overlay Opacity</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-300 rounded" style={{ background: `linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,${landingPage.landingPageOverlayOpacity / 100}))` }}></div>
-                    <span className="text-sm text-gray-900 font-medium w-8 text-right">{landingPage.landingPageOverlayOpacity}%</span>
-                  </div>
-                </div>
-                {landingPage.landingPageBackgroundMode === 'IMAGE' && landingPage.landingPageBackgroundImage && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">🖼️ Background Image</p>
-                    <img
-                      src={landingPage.landingPageBackgroundImage}
-                      alt="Background"
-                      className="w-full h-40 object-cover rounded border border-gray-300"
-                    />
-                  </div>
-                )}
-                {landingPage.landingPageBackgroundMode === 'VIDEO' && (
-                  <>
-                    {landingPage.landingPageVideoUrl && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">🎬 Video Background (Primary)</p>
-                        <div className="rounded overflow-hidden bg-black border border-gray-300">
-                          <video
-                            src={landingPage.landingPageVideoUrl}
-                            controls
-                            className="w-full h-40 object-cover"
-                          />
-                        </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">Overlay</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gray-800 rounded-full" style={{ width: `${landingPage.landingPageOverlayOpacity}%` }} />
                       </div>
-                    )}
-                    {landingPage.landingPageBackgroundImage && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">🖼️ Fallback Image (if video fails)</p>
-                        <img
-                          src={landingPage.landingPageBackgroundImage}
-                          alt="Fallback"
-                          className="w-full h-40 object-cover rounded border border-gray-300"
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
+                      <span className="text-gray-900 font-medium">{landingPage.landingPageOverlayOpacity}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
                 {landingPage.landingPageLinkText && (
-                  <p className="text-sm mt-2"><strong>Link:</strong> {landingPage.landingPageLinkText} → {landingPage.landingPageLinkUrl || '(no URL)'}</p>
+                  <p className="text-sm text-gray-600"><strong>Link:</strong> {landingPage.landingPageLinkText} → {landingPage.landingPageLinkUrl || '(no URL)'}</p>
                 )}
                 {(landingPage.landingPageStartDate || landingPage.landingPageEndDate) && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     <strong>Schedule:</strong>{' '}
                     {landingPage.landingPageStartDate && `From: ${new Date(landingPage.landingPageStartDate).toLocaleDateString()}`}
                     {landingPage.landingPageStartDate && landingPage.landingPageEndDate && ' — '}
@@ -1978,24 +2206,24 @@ const DashboardManager = () => {
                   </p>
                 )}
                 {(landingPage.landingPageBgColor || landingPage.landingPageTextColor) && (
-                  <div className="flex items-center gap-3 mt-2">
-                    <strong className="text-sm">Colors:</strong>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600">Colors:</span>
                     {landingPage.landingPageBgColor && (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: landingPage.landingPageBgColor }} />
-                        <span className="text-xs text-gray-500">BG</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: landingPage.landingPageBgColor }} />
+                        <span className="text-xs text-gray-500">Overlay</span>
                       </div>
                     )}
                     {landingPage.landingPageTextColor && (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: landingPage.landingPageTextColor }} />
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: landingPage.landingPageTextColor }} />
                         <span className="text-xs text-gray-500">Text</span>
                       </div>
                     )}
                   </div>
                 )}
                 {landingPage.landingPagePriority > 0 && (
-                  <p className="text-sm mt-1"><strong>Priority:</strong> {landingPage.landingPagePriority}</p>
+                  <p className="text-sm"><strong>Priority:</strong> {landingPage.landingPagePriority}</p>
                 )}
               </div>
             )}

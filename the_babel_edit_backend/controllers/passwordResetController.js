@@ -24,16 +24,21 @@ export const requestPasswordReset = async (req, res) => {
       where: { email: email.toLowerCase() }
     });
 
-    // Always return success to prevent email enumeration attacks
-    const successMessage = 'If an account with that email exists, we have sent a password reset link.';
-
     if (!user) {
-      return res.json({ message: successMessage });
+      return res.status(404).json({ 
+        message: 'No account found with this email address. Please check the email or create a new account.',
+        code: 'USER_NOT_FOUND'
+      });
     }
 
     // Check if user has a password (not OAuth only)
     if (!user.password) {
-      return res.json({ message: successMessage });
+      // Determine which OAuth provider they used
+      const provider = user.googleId ? 'Google' : 'a social login provider';
+      return res.status(400).json({ 
+        message: `This account uses ${provider} sign-in. Please use the "Sign in with ${provider}" button instead.`,
+        code: 'OAUTH_ACCOUNT'
+      });
     }
 
     // Generate reset token
@@ -52,58 +57,54 @@ export const requestPasswordReset = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetJWT}`;
+    // Create reset URL — use /en/ locale prefix for universal compatibility
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const resetUrl = `${frontendUrl}/en/auth/reset-password?token=${resetJWT}`;
 
-    // Email template
+    // Branded email template
     const emailHtml = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Password Reset - The Babel Edit</title>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .button { 
-              display: inline-block; 
-              padding: 12px 24px; 
-              background-color: #007bff; 
-              color: white; 
-              text-decoration: none; 
-              border-radius: 4px; 
-              margin: 20px 0;
-            }
-            .footer { margin-top: 30px; font-size: 14px; color: #666; }
-          </style>
         </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Password Reset Request</h1>
-            </div>
-            
-            <p>Hello ${user.firstName || 'there'},</p>
-            
-            <p>We received a request to reset your password for your The Babel Edit account.</p>
-            
-            <p>Click the button below to reset your password:</p>
-            
-            <div style="text-align: center;">
-              <a href="${resetUrl}" class="button">Reset Password</a>
-            </div>
-            
-            <p>Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #007bff;">${resetUrl}</p>
-            
-            <p>This link will expire in 1 hour for security reasons.</p>
-            
-            <p>If you didn't request this password reset, please ignore this email. Your password will remain unchanged.</p>
-            
-            <div class="footer">
-              <p>Best regards,<br>The Babel Edit Team</p>
-              <p><em>This is an automated email. Please do not reply to this email.</em></p>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
+          <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+            <!-- Card -->
+            <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+              <!-- Header -->
+              <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
+                <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+              </div>
+
+              <!-- Body -->
+              <div style="padding: 32px 24px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 16px;">Password Reset Request</h2>
+                
+                <p style="color: #374151; margin: 0 0 16px;">Hello ${user.firstName || 'there'},</p>
+                
+                <p style="color: #374151; margin: 0 0 24px;">We received a request to reset the password for your The Babel Edit account. Click the button below to choose a new password:</p>
+                
+                <div style="text-align: center; margin: 28px 0;">
+                  <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Reset Password</a>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px;">Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; color: #ef4444; font-size: 13px; margin: 0 0 24px; background: #fef2f2; padding: 10px 12px; border-radius: 6px;">${resetUrl}</p>
+                
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 8px;">
+                  <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px;">⏰ This link will expire in <strong>1 hour</strong> for security reasons.</p>
+                  <p style="color: #6b7280; font-size: 13px; margin: 0;">If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+                <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+              </div>
             </div>
           </div>
         </body>
@@ -111,11 +112,13 @@ export const requestPasswordReset = async (req, res) => {
     `;
 
     // Send email
+    console.log('[PASSWORD_RESET] About to call sendEmail for:', user.email);
     await sendEmail({
       to: user.email,
       subject: 'Password Reset - The Babel Edit',
       html: emailHtml
     });
+    console.log('[PASSWORD_RESET] sendEmail call completed');
 
     await appendAuditLog({
       action: 'request_password_reset', resource: 'User', resourceId: user.id,
@@ -123,7 +126,7 @@ export const requestPasswordReset = async (req, res) => {
       user: { id: user.id, email: user.email }, req,
     });
 
-    res.json({ message: successMessage });
+    res.json({ message: 'Password reset link has been sent to your email.' });
 
   } catch (error) {
     console.error('Request password reset error:', error);
@@ -244,29 +247,40 @@ export const resetPassword = async (req, res) => {
         <html>
           <head>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Password Changed - The Babel Edit</title>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { text-align: center; margin-bottom: 30px; }
-              .footer { margin-top: 30px; font-size: 14px; color: #666; }
-            </style>
           </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>Password Changed Successfully</h1>
-              </div>
-              
-              <p>Hello ${user.firstName || 'there'},</p>
-              
-              <p>Your password has been successfully changed for your The Babel Edit account.</p>
-              
-              <p>If you didn't make this change, please contact our support team immediately.</p>
-              
-              <div class="footer">
-                <p>Best regards,<br>The Babel Edit Team</p>
-                <p><em>This is an automated email. Please do not reply to this email.</em></p>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
+            <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+                <!-- Header -->
+                <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
+                  <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+                </div>
+
+                <!-- Body -->
+                <div style="padding: 32px 24px;">
+                  <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: #dcfce7; line-height: 56px; font-size: 28px;">✓</div>
+                  </div>
+                  
+                  <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 16px; text-align: center;">Password Changed Successfully</h2>
+                  
+                  <p style="color: #374151; margin: 0 0 16px;">Hello ${user.firstName || 'there'},</p>
+                  
+                  <p style="color: #374151; margin: 0 0 16px;">Your password for your The Babel Edit account has been successfully updated.</p>
+                  
+                  <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px 16px; margin: 20px 0;">
+                    <p style="color: #b91c1c; font-size: 13px; font-weight: 600; margin: 0;">⚠️ Didn't make this change?</p>
+                    <p style="color: #b91c1c; font-size: 13px; margin: 4px 0 0;">If you didn't request this password change, please contact our support team immediately to secure your account.</p>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+                  <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+                </div>
               </div>
             </div>
           </body>

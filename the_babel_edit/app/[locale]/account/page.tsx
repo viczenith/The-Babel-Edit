@@ -643,7 +643,7 @@ export default function AccountPage() {
                       name="address"
                       value={newAddress.address}
                       onChange={handleAddressChange}
-                      placeholder="123 Main Street"
+                      placeholder="1616 Whistler Drive"
                       required
                       className={styles.formInput}
                     />
@@ -657,7 +657,7 @@ export default function AccountPage() {
                         name="city"
                         value={newAddress.city}
                         onChange={handleAddressChange}
-                        placeholder="New York"
+                        placeholder="Little Elm"
                         className={styles.formInput}
                       />
                     </label>
@@ -669,7 +669,7 @@ export default function AccountPage() {
                         name="state"
                         value={newAddress.state}
                         onChange={handleAddressChange}
-                        placeholder="NY"
+                        placeholder="TX"
                         className={styles.formInput}
                       />
                     </label>
@@ -683,7 +683,7 @@ export default function AccountPage() {
                         name="zipCode"
                         value={newAddress.zipCode}
                         onChange={handleAddressChange}
-                        placeholder="10001"
+                        placeholder="75068"
                         className={styles.formInput}
                       />
                     </label>
@@ -823,8 +823,17 @@ export default function AccountPage() {
       case 'feedback':
         return (
           <div className={styles.profileForm}>
-            <h2 className={styles.tabTitle}>We value your feedback.</h2>
-            <p className={styles.tabDescription}>Your opinion helps us improve our products and services.</p>
+            <div className={styles.feedbackHeader}>
+              <div className={styles.feedbackIconWrap}>
+                <Megaphone className="w-6 h-6" style={{ color: '#ef4444' }} />
+              </div>
+              <div>
+                <h2 className={styles.tabTitle}>We&apos;d Love to Hear From You</h2>
+                <p className={styles.tabDescription}>
+                  Got a suggestion, spotted an issue, or just want to say hello? Your feedback directly shapes how we grow.
+                </p>
+              </div>
+            </div>
             <FeedbackForm onSubmit={handleFeedbackSubmit} />
           </div>
         );
@@ -905,25 +914,33 @@ export default function AccountPage() {
               disabled={uploadingAvatar}
             />
             <div className="flex flex-col items-center gap-2">
-              <img
-                src={profile?.avatar || user?.avatar || "/images/babel_logo_black.jpg"}
-                alt="avatar"
-                className={styles.avatar}
-              />
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="w-full"
-              >
-                {uploadingAvatar ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Camera className="mr-2 h-4 w-4" />
-                )}
-                Change
-              </Button>
+              {(profile?.avatar || user?.avatar) ? (
+                <img
+                  src={profile?.avatar || user?.avatar}
+                  alt="avatar"
+                  className={styles.avatar}
+                />
+              ) : (
+                <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid #e8ded6', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CircleUserRound className="w-10 h-10 text-gray-400" strokeWidth={1.5} />
+                </div>
+              )}
+              {activeTab === 'profile' && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="w-full"
+                >
+                  {uploadingAvatar ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="mr-2 h-4 w-4" />
+                  )}
+                  Change
+                </Button>
+              )}
             </div>
             <div>
               <div className={styles.profileName}>

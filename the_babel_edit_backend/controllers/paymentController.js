@@ -203,7 +203,7 @@ const handleSuccessfulPayment = async (paymentIntent) => {
   }
 };
 
-const sendConfirmationEmails = async (order) => {
+export const sendConfirmationEmails = async (order) => {
   try {
     const customerTemplatePath = path.resolve(process.cwd(), 'templates', 'customerConfirmation.html');
     const companyTemplatePath = path.resolve(process.cwd(), 'templates', 'companyNotification.html');
@@ -216,8 +216,8 @@ const sendConfirmationEmails = async (order) => {
     // --- Common data ---
     const formatCurrency = (amount) => `$${amount.toFixed(2)}`;
     const customerName = `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim() || order.user.email;
-    const orderDetailsUrl = `${process.env.FRONTEND_URL}/orders/${order.id}`;
-    const adminOrderUrl = `${process.env.FRONTEND_URL}/admin/orders/${order.id}`;
+    const orderDetailsUrl = `${process.env.FRONTEND_URL}/en/orders/${order.id}`;
+    const adminOrderUrl = `${process.env.FRONTEND_URL}/en/admin/orders/${order.id}`;
 
     // --- Customer Email ---
     const customerOrderItems = order.items.map(item => `
@@ -229,14 +229,15 @@ const sendConfirmationEmails = async (order) => {
     `).join('');
 
     let finalCustomerHtml = customerHtml
-      .replace('{{customerName}}', customerName)
-      .replace('{{orderNumber}}', order.orderNumber)
-      .replace('{{orderItems}}', customerOrderItems)
-      .replace('{{subtotal}}', formatCurrency(order.subtotal))
-      .replace('{{shipping}}', formatCurrency(order.shipping))
-      .replace('{{tax}}', formatCurrency(order.tax))
-      .replace('{{total}}', formatCurrency(order.total))
-      .replace('{{orderDetailsUrl}}', orderDetailsUrl);
+      .replaceAll('{{customerName}}', customerName)
+      .replaceAll('{{orderNumber}}', order.orderNumber)
+      .replaceAll('{{orderItems}}', customerOrderItems)
+      .replaceAll('{{subtotal}}', formatCurrency(order.subtotal))
+      .replaceAll('{{shipping}}', formatCurrency(order.shipping))
+      .replaceAll('{{tax}}', formatCurrency(order.tax))
+      .replaceAll('{{total}}', formatCurrency(order.total))
+      .replaceAll('{{orderDetailsUrl}}', orderDetailsUrl)
+      .replaceAll('{{year}}', new Date().getFullYear().toString());
 
     await sendEmail({
       to: order.user.email,
@@ -262,13 +263,13 @@ const sendConfirmationEmails = async (order) => {
       : 'N/A';
 
     let finalCompanyHtml = companyHtml
-      .replace('{{orderNumber}}', order.orderNumber)
-      .replace('{{customerName}}', customerName)
-      .replace('{{customerEmail}}', order.user.email)
-      .replace('{{total}}', formatCurrency(order.total))
-      .replace('{{orderItems}}', companyOrderItems)
-      .replace('{{shippingAddress}}', shippingAddressHtml)
-      .replace('{{adminOrderUrl}}', adminOrderUrl);
+      .replaceAll('{{orderNumber}}', order.orderNumber)
+      .replaceAll('{{customerName}}', customerName)
+      .replaceAll('{{customerEmail}}', order.user.email)
+      .replaceAll('{{total}}', formatCurrency(order.total))
+      .replaceAll('{{orderItems}}', companyOrderItems)
+      .replaceAll('{{shippingAddress}}', shippingAddressHtml)
+      .replaceAll('{{adminOrderUrl}}', adminOrderUrl);
 
     await sendEmail({
       to: process.env.COMPANY_EMAIL || 'support@thebabeledit.com',
@@ -284,13 +285,18 @@ const handleFailedPayment = async (paymentIntent) => {
   const { orderId } = paymentIntent.metadata;
   
   try {
-    await prisma.order.update({
+    const order = await prisma.order.update({
       where: { id: orderId },
       data: {
         status: 'PENDING',
         paymentStatus: 'FAILED'
+      },
+      include: {
+        user: { select: { email: true, firstName: true } },
+        items: { include: { product: { select: { name: true } } } }
       }
     });
+
     // Audit: failed payment via webhook
     await appendAuditLog({
       action: 'payment_failed',
@@ -300,6 +306,59 @@ const handleFailedPayment = async (paymentIntent) => {
       severity: 'warning',
       user: { id: 'system', email: 'stripe-webhook', role: 'SYSTEM' },
     });
+
+    // Send payment failed email to customer
+    if (order.user?.email) {
+      const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const failureReason = paymentIntent.last_payment_error?.message || 'Your payment could not be processed.';
+      const itemsList = order.items.map(item => `<li style="color: #374151; margin-bottom: 4px;">${item.product?.name || 'Item'} × ${item.quantity}</li>`).join('');
+
+      const failedHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
+            <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+                <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
+                  <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+                </div>
+                <div style="padding: 32px 24px;">
+                  <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 16px;">Payment Unsuccessful</h2>
+                  <p style="color: #374151; margin: 0 0 12px;">Hi ${order.user.firstName || 'there'},</p>
+                  <p style="color: #374151; margin: 0 0 16px;">We were unable to process payment for your order <strong>#${orderId.slice(-8).toUpperCase()}</strong>.</p>
+                  
+                  <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin: 0 0 20px;">
+                    <p style="color: #991b1b; font-size: 14px; margin: 0;"><strong>Reason:</strong> ${failureReason}</p>
+                  </div>
+                  
+                  <p style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 8px;">Order items:</p>
+                  <ul style="padding-left: 20px; margin: 0 0 20px;">${itemsList}</ul>
+                  
+                  <p style="color: #374151; margin: 0 0 12px;">Please try again with a different payment method or contact your bank for more details.</p>
+                  
+                  <div style="text-align: center; margin: 28px 0;">
+                    <a href="${frontendUrl}/en/cart" style="display: inline-block; padding: 14px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Retry Payment</a>
+                  </div>
+                  
+                  <p style="color: #6b7280; font-size: 13px; margin: 0;">Need help? Contact us at <a href="mailto:${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}" style="color: #ef4444;">${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}</a></p>
+                </div>
+                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+                  <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      sendEmail({
+        to: order.user.email,
+        subject: 'Payment Failed — The Babel Edit',
+        html: failedHtml
+      });
+    }
   } catch (error) {
     throw error;
   }

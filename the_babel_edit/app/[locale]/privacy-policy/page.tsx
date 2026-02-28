@@ -118,7 +118,7 @@ const PrivacyPolicy = () => {
                 <p><strong>Business Name:</strong> {storeName}</p>
                 <p><strong>Website:</strong> www.thebabeledit.com</p>
                 <p><strong>Contact:</strong> {storeEmail}</p>
-                <p><strong>Location:</strong> {settings.store_address || 'United States'}</p>
+                <p><strong>Location:</strong> {settings.store_address || '1616 Whistler Drive, Little Elm, TX 75068'}</p>
               </div>
             </div>
             

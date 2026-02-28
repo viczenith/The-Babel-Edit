@@ -257,7 +257,7 @@ Card Number	Result
 4242 4242 4242 4242	Successful payment
 4000 0000 0000 3220	3D Secure authentication
 4000 0000 0000 9995	Declined (insufficient funds)
-4000 0000 0000 0002	Generic decline
+4000 0000 0000 0002	Generic decline 
 
 For the other fields, use any valid-looking values:
 Expiry: Any future date (e.g. 12/29)

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../prismaClient.js';
 import { appendAuditLog } from './adminController.js';
 import { getSettingValue } from './settingsController.js';
+import { sendEmail } from '../utils/emailService.js';
 
 import { generateAccessToken, generateRefreshToken, setRefreshTokenCookie } from '../utils/authUtils.js';
 import { validateAndConsumeToken } from './superAdminTokenController.js';
@@ -69,7 +70,7 @@ export const register = async (req, res) => {
         password: hashedPassword,
         firstName,
         lastName,
-        isVerified: false,
+        isVerified: true,
         isAgree: false,
         role: isSuperAdminRequest ? 'SUPER_ADMIN' : undefined
       }
@@ -96,6 +97,73 @@ export const register = async (req, res) => {
       details: { userId: user.id, email: user.email, role: user.role },
       user: { id: user.id, email: user.email, role: user.role }, req,
     });
+
+    // Send welcome email (non-blocking)
+    try {
+      const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const welcomeHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Welcome to The Babel Edit</title>
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
+            <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+                <!-- Header -->
+                <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
+                  <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+                </div>
+
+                <!-- Body -->
+                <div style="padding: 32px 24px;">
+                  <h2 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 16px;">Welcome, ${firstName}! 🎉</h2>
+                  
+                  <p style="color: #374151; margin: 0 0 16px;">Thank you for joining <strong>The Babel Edit</strong>. We're thrilled to have you as part of our community.</p>
+                  
+                  <p style="color: #374151; margin: 0 0 24px;">Here's what you can do now:</p>
+                  
+                  <div style="margin: 0 0 24px;">
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
+                      <span style="color: #374151;">Browse our curated collections</span>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
+                      <span style="color: #374151;">Save items to your wishlist</span>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
+                      <span style="color: #374151;">Enjoy exclusive member offers</span>
+                    </div>
+                  </div>
+                  
+                  <div style="text-align: center; margin: 28px 0;">
+                    <a href="${frontendUrl}/en/dashboard" style="display: inline-block; padding: 14px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Start Shopping</a>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+                  <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      sendEmail({
+        to: email,
+        subject: 'Welcome to The Babel Edit! 🛍️',
+        html: welcomeHtml
+      });
+    } catch (emailError) {
+      // Don't fail registration if welcome email fails
+    }
 
     res.status(201).json({
       message: 'User registered successfully',

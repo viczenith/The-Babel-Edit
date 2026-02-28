@@ -341,12 +341,12 @@ export default function SignupPage() {
             <button type="button" className={styles.socialBtn} onClick={handleGoogleSignup}>
               <img src="/images/google.svg" alt="Google" />Google
             </button>
-            <button type="button" className={styles.socialBtn} onClick={() => toast('Facebook signup coming soon', { icon: '🔜' })}>
+            {/* <button type="button" className={styles.socialBtn} onClick={() => toast('Facebook signup coming soon', { icon: '🔜' })}>
               <img src="/images/facebook.svg" alt="Facebook" />Facebook
             </button>
             <button type="button" className={styles.socialBtn} onClick={() => toast('Apple signup coming soon', { icon: '🔜' })}>
               <img src="/images/apple.svg" alt="Apple" />Apple
-            </button>
+            </button> */}
           </div>
 
           <div className={styles.signinRow}>

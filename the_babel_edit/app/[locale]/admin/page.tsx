@@ -173,6 +173,7 @@ const AdminPage = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [orderSort, setOrderSort] = useState<{ field: 'date' | 'amount' | 'status' | 'customer'; dir: 'asc' | 'desc' }>({ field: 'date', dir: 'desc' });
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
+  const [savingTracking, setSavingTracking] = useState<Record<string, boolean>>({});
   const [statusConfirm, setStatusConfirm] = useState<{ orderId: string; newStatus: string } | null>(null);
   const [orderPage, setOrderPage] = useState(1);
   const ORDERS_PER_PAGE = 10;
@@ -2192,24 +2193,46 @@ const AdminPage = () => {
                                               placeholder={order.trackingNumber || 'Enter tracking number...'}
                                               value={trackingInputs[order.id] ?? order.trackingNumber ?? ''}
                                               onChange={(e) => setTrackingInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
-                                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                              disabled={savingTracking[order.id]}
+                                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                             />
                                             <button
+                                              disabled={savingTracking[order.id] || !(trackingInputs[order.id]?.trim()) || trackingInputs[order.id] === order.trackingNumber}
                                               onClick={async () => {
-                                                const tracking = trackingInputs[order.id];
+                                                const tracking = trackingInputs[order.id]?.trim();
                                                 if (!tracking) return;
+                                                setSavingTracking(prev => ({ ...prev, [order.id]: true }));
                                                 try {
                                                   await apiRequest(API_ENDPOINTS.ORDERS.ADMIN.UPDATE_STATUS(order.id), { method: 'PATCH', body: { status: order.status, trackingNumber: tracking }, requireAuth: true });
-                                                  toast.success('Tracking number saved');
+                                                  toast.success('Tracking number saved successfully');
                                                   setTrackingInputs(prev => { const n = { ...prev }; delete n[order.id]; return n; });
                                                   fetchOrders();
-                                                } catch { toast.error('Failed to save tracking'); }
+                                                } catch (err: any) {
+                                                  const msg = err?.message || err?.data?.message || 'Failed to save tracking number';
+                                                  toast.error(msg);
+                                                } finally {
+                                                  setSavingTracking(prev => ({ ...prev, [order.id]: false }));
+                                                }
                                               }}
-                                              className="px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition"
+                                              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed min-w-[70px] justify-center"
                                             >
-                                              Save
+                                              {savingTracking[order.id] ? (
+                                                <>
+                                                  <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                  </svg>
+                                                  Saving...
+                                                </>
+                                              ) : 'Save'}
                                             </button>
                                           </div>
+                                          {order.trackingNumber && !trackingInputs[order.id] && (
+                                            <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                                              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                              Tracking number saved
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
 

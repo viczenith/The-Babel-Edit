@@ -328,7 +328,6 @@ export const apiRequest = async <T = any>(
   }
 };
 
-// API Endpoints Configuration
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
@@ -433,12 +432,12 @@ export const API_ENDPOINTS = {
     LIST: '/reviews',
     DELETE: (reviewId: string) => `/reviews/${reviewId}`,
   },
-  ADMIN: { // New top-level ADMIN key
+  ADMIN: {
     TESTIMONIALS: {
-      LIST: '/admin/testimonials', // GET all featured testimonial IDs
-      ADD: '/admin/testimonials',   // POST to add a reviewId as testimonial
-      REMOVE: (reviewId: string) => `/admin/testimonials/${reviewId}`, // DELETE to remove
-      PUBLIC_LIST: '/testimonials/public', // GET public testimonials (non-admin)
+      LIST: '/admin/testimonials',
+      ADD: '/admin/testimonials',
+      REMOVE: (reviewId: string) => `/admin/testimonials/${reviewId}`,
+      PUBLIC_LIST: '/testimonials/public',
     }
   },
   FEEDBACK: {
@@ -459,6 +458,7 @@ export const API_ENDPOINTS = {
     UPDATE_LANDING_PAGE: '/admin/dashboard/landing-page',
     GET_CONFIG: '/dashboard/config',
     UPDATE_CONFIG: '/admin/dashboard/config',
+    TOGGLE_VISIBILITY: '/admin/dashboard/toggle-visibility',
   },
   SETTINGS: {
     LIST: '/admin/settings',
@@ -467,6 +467,12 @@ export const API_ENDPOINTS = {
     BULK_UPDATE: '/admin/settings/bulk',
     RESET: '/admin/settings/reset',
     PUBLIC: (key: string) => `/admin/settings/public/${key}`,
+  },
+  PASSWORD: {
+    REQUEST_RESET: '/password/request',
+    VERIFY_TOKEN: '/password/verify',
+    RESET: '/password/reset',
+    CHANGE: '/password/change',
   },
   ANNOUNCEMENTS: {
     ACTIVE: '/announcements/active',

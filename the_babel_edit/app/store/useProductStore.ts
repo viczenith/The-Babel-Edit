@@ -86,10 +86,10 @@ const CACHE_KEYS = {
 const handleError = (error: unknown, defaultMessage: string): string => {
   if (error instanceof Error) {
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('aborted')) {
-      return 'Server is starting up — this may take up to 30 seconds on first visit. Please wait and try again.';
+      return 'We\'re having trouble connecting right now. Please try again in a moment.';
     }
     if (error.message.includes('timeout')) {
-      return 'Server is waking up. Please refresh the page in a few seconds.';
+      return 'This is taking longer than expected. Please refresh the page and try again.';
     }
     return error.message;
   }
@@ -214,7 +214,7 @@ export const useProductStore = create<ProductStore>()(
         });
         
       } catch (error) {
-        console.error('Error fetching products:', error);
+        // Silent — backend may not be running locally
         const errorMessage = handleError(error, 'Failed to fetch products');
         set({ error: errorMessage, hasMore: false });
       } finally {
@@ -246,7 +246,7 @@ export const useProductStore = create<ProductStore>()(
         setFeaturedProducts(responseData.products);
         
       } catch (error) {
-        console.error('Error fetching featured products:', error);
+        // Silent — backend may not be running locally
         const errorMessage = handleError(error, 'Failed to fetch featured products');
         setError(errorMessage);
         const cachedData = getCachedData<{ featuredProducts: Product[] }>(CACHE_KEYS.FEATURED);

@@ -150,7 +150,7 @@ export default function CheckoutPage() {
     if (!shippingInfo.zipCode.trim()) {
       errors.zipCode = 'ZIP code is required';
     } else if (!/^\d{5}(-\d{4})?$/.test(shippingInfo.zipCode.trim())) {
-      errors.zipCode = 'Enter a valid US ZIP code (e.g. 10001 or 10001-1234)';
+      errors.zipCode = 'Enter a valid US ZIP code (e.g. 75068 or 75068-1234)';
     }
 
     if (!shippingInfo.phone.trim()) {
@@ -424,22 +424,22 @@ export default function CheckoutPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                    <input type="text" autoComplete="street-address" value={shippingInfo.address} onChange={(e) => handleInputChange('address', e.target.value)} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.address ? 'border-red-500' : 'border-gray-300'}`} placeholder="123 Main Street, Apt 4B" />
+                    <input type="text" autoComplete="street-address" value={shippingInfo.address} onChange={(e) => handleInputChange('address', e.target.value)} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.address ? 'border-red-500' : 'border-gray-300'}`} placeholder="1616 Whistler Drive" />
                     {formErrors.address && <p className="text-red-500 text-sm mt-1">{formErrors.address}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                    <input type="text" autoComplete="address-level2" value={shippingInfo.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.city ? 'border-red-500' : 'border-gray-300'}`} placeholder="New York" />
+                    <input type="text" autoComplete="address-level2" value={shippingInfo.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.city ? 'border-red-500' : 'border-gray-300'}`} placeholder="Little Elm" />
                     {formErrors.city && <p className="text-red-500 text-sm mt-1">{formErrors.city}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                    <input type="text" autoComplete="address-level1" value={shippingInfo.state} onChange={(e) => handleInputChange('state', e.target.value.toUpperCase())} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.state ? 'border-red-500' : 'border-gray-300'}`} placeholder="NY" maxLength={2} />
+                    <input type="text" autoComplete="address-level1" value={shippingInfo.state} onChange={(e) => handleInputChange('state', e.target.value.toUpperCase())} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.state ? 'border-red-500' : 'border-gray-300'}`} placeholder="TX" maxLength={2} />
                     {formErrors.state && <p className="text-red-500 text-sm mt-1">{formErrors.state}</p>}
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code *</label>
-                    <input type="text" autoComplete="postal-code" inputMode="numeric" value={shippingInfo.zipCode} onChange={(e) => { const filtered = e.target.value.replace(/[^0-9-]/g, ''); handleInputChange('zipCode', filtered); }} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.zipCode ? 'border-red-500' : 'border-gray-300'}`} placeholder="10001" maxLength={10} />
+                    <input type="text" autoComplete="postal-code" inputMode="numeric" value={shippingInfo.zipCode} onChange={(e) => { const filtered = e.target.value.replace(/[^0-9-]/g, ''); handleInputChange('zipCode', filtered); }} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${ formErrors.zipCode ? 'border-red-500' : 'border-gray-300'}`} placeholder="75068" maxLength={10} />
                     {formErrors.zipCode && <p className="text-red-500 text-sm mt-1">{formErrors.zipCode}</p>}
                   </div>
                 </div>

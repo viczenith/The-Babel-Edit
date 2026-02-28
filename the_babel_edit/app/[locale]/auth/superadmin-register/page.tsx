@@ -72,14 +72,14 @@ const SuperAdminRegisterPage: React.FC = () => {
               <img src="/images/google.svg" alt="Google" />
               Google
             </button>
-            <button type="button" className={styles.socialBtn} onClick={() => { window.location.href = '/api/users/auth/facebook'; }}>
+            {/* <button type="button" className={styles.socialBtn} onClick={() => { window.location.href = '/api/users/auth/facebook'; }}>
               <img src="/images/facebook.svg" alt="Facebook" />
               Facebook
             </button>
             <button type="button" className={styles.socialBtn} onClick={() => { window.location.href = '/api/users/auth/apple'; }}>
               <img src="/images/apple.svg" alt="Apple" />
               Apple
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

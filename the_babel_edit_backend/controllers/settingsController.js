@@ -44,7 +44,7 @@ const DEFAULT_SETTINGS = [
   { key: 'store_tagline',         value: '',                  group: 'branding', label: 'Store Tagline' },
   { key: 'store_description',     value: '',                  group: 'branding', label: 'Store Description' },
   { key: 'store_phone',           value: '',                  group: 'branding', label: 'Phone Number' },
-  { key: 'store_address',         value: '',                  group: 'branding', label: 'Business Address' },
+  { key: 'store_address',         value: '1616 Whistler Drive, Little Elm, TX 75068',                  group: 'branding', label: 'Business Address' },
   { key: 'store_logo_url',        value: '',                  group: 'branding', label: 'Logo URL' },
   { key: 'social_facebook',       value: '',                  group: 'branding', label: 'Facebook URL' },
   { key: 'social_instagram',      value: '',                  group: 'branding', label: 'Instagram URL' },

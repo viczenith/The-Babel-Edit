@@ -392,3 +392,61 @@ export const updateLandingPage = async (req, res) => {
   }
 };
 
+// === TOGGLE SECTION VISIBILITY ===
+
+const VISIBILITY_FIELDS = {
+  heroSlides: 'heroSlidesVisible',
+  highlightCards: 'highlightCardsVisible',
+  summerBanner: 'summerBannerVisible',
+  landingPageHero: 'landingPageHeroVisible',
+};
+
+export const toggleSectionVisibility = async (req, res) => {
+  try {
+    const { section, visible } = req.body;
+
+    const field = VISIBILITY_FIELDS[section];
+    if (!field) {
+      return res.status(400).json({ error: `Invalid section. Expected one of: ${Object.keys(VISIBILITY_FIELDS).join(', ')}` });
+    }
+
+    if (typeof visible !== 'boolean') {
+      return res.status(400).json({ error: "'visible' must be a boolean" });
+    }
+
+    let config = await prisma.dashboardConfig.findFirst();
+
+    if (!config) {
+      config = await prisma.dashboardConfig.create({ data: { [field]: visible } });
+    } else {
+      config = await prisma.dashboardConfig.update({
+        where: { id: config.id },
+        data: { [field]: visible },
+      });
+    }
+
+    // Audit
+    await appendAuditLog({
+      action: 'toggle_section_visibility',
+      resource: 'Dashboard',
+      resourceId: config.id,
+      details: { section, visible },
+      severity: 'info',
+      user: { id: req.user?.userId || null, email: req.user?.email || null, role: req.user?.role || null },
+      req,
+    });
+
+    res.status(200).json({
+      section,
+      visible: config[field],
+      heroSlidesVisible: config.heroSlidesVisible,
+      highlightCardsVisible: config.highlightCardsVisible,
+      summerBannerVisible: config.summerBannerVisible,
+      landingPageHeroVisible: config.landingPageHeroVisible,
+    });
+  } catch (error) {
+    console.error("Error toggling section visibility:", error);
+    res.status(500).json({ error: error.message || "Failed to toggle section visibility" });
+  }
+};
+

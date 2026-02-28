@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag, Search, User, Heart, Star, MessageSquarePlus } from 'lucide-react';
+import { ShoppingBag, Heart, Star, MessageSquarePlus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import FeedbackModal from '@/app/components/FeedbackModal';
@@ -30,7 +30,6 @@ interface Testimonial {
   };
 }
 
-// Your original components would be imported here
 import NavbarWithSuspense from '@/app/components/features/Navbar/NavbarWithSuspense'
 import AnnouncementBar from '@/app/components/features/AnnouncementBar/AnnouncementBar';
 import Carousel from '@/app/components/features/Carousel/Carousel';
@@ -332,21 +331,25 @@ function Dashboard() {
   const params = useParams();
   const locale = (params.locale as string) || 'en';
 
-  // Store integration
   const {
     fetchFeaturedProducts,
-    fetchProducts,
     featuredProducts,
-    products,
     loading,
     error
   } = useProductStore();
 
-  // Additional state for collections/categories
-  const [collections, setCollections] = useState<any[]>([]);
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [highlightCards, setHighlightCards] = useState<any[]>([]);
   const [summerBanner, setSummerBanner] = useState<any>(null);
+  const [hasRealHeroData, setHasRealHeroData] = useState(false);
+  const [hasRealHighlightData, setHasRealHighlightData] = useState(false);
+  const [hasRealSummerBannerData, setHasRealSummerBannerData] = useState(false);
+  const [sectionVisibility, setSectionVisibility] = useState({
+    heroSlides: true,
+    highlightCards: true,
+    summerBanner: true,
+    landingPageHero: true,
+  });
   const [featuredFeedbacks, setFeaturedFeedbacks] = useState<Feedback[]>([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(true);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -355,15 +358,13 @@ function Dashboard() {
 
   useEffect(() => {
     // Fetch featured products from backend
-    fetchFeaturedProducts(8); // Get 8 featured products
-
-    // Fetch collections for the highlight cards
-    fetchCollections();
+    fetchFeaturedProducts(8);
 
     // Fetch dashboard content from API
     fetchHeroData();
     fetchHighlightCardsData();
     fetchSummerBannerData();
+    fetchSectionVisibility();
   }, []);
 
   useEffect(() => {
@@ -371,8 +372,8 @@ function Dashboard() {
       try {
         const data = await apiRequest<Feedback[]>(API_ENDPOINTS.FEEDBACK.FEATURED);
         setFeaturedFeedbacks(data);
-      } catch (error) {
-        console.error('Failed to fetch featured feedbacks:', error);
+      } catch {
+        // Silent — backend may not be running locally
       } finally {
         setFeedbacksLoading(false);
       }
@@ -385,8 +386,8 @@ function Dashboard() {
       try {
         const data = await apiRequest<Testimonial[]>(API_ENDPOINTS.ADMIN.TESTIMONIALS.PUBLIC_LIST);
         setTestimonials(data);
-      } catch (error) {
-        console.error('Failed to fetch testimonials:', error);
+      } catch {
+        // Silent — backend may not be running locally
       } finally {
         setTestimonialsLoading(false);
       }
@@ -394,39 +395,10 @@ function Dashboard() {
     fetchTestimonials();
   }, []);
 
-  // Fetch featured feedbacks for display on dashboard
-  const fetchFeaturedFeedbacks = async () => {
-    try {
-      const data = await apiRequest<Feedback[]>(API_ENDPOINTS.FEEDBACK.FEATURED);
-      setFeaturedFeedbacks(data);
-    } catch (error) {
-      console.error('Failed to fetch featured feedbacks:', error);
-    } finally {
-      setFeedbacksLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFeaturedFeedbacks();
-  }, []);
-
-  // Fetch collections for the highlight section
-  const fetchCollections = async () => {
-    try {
-      const response = await apiRequest<any>('/collections');
-      setCollections(response.collections || response || []);
-    } catch (error) {
-      console.warn('Backend not available, using fallback collections:');
-      // Set empty collections array so the page still renders with default cards
-      setCollections([]);
-    }
-  };
-
   const fetchHeroData = async () => {
     try {
       const data = await apiRequest<any[]>(API_ENDPOINTS.DASHBOARD.GET_HERO_SLIDES);
       if (Array.isArray(data) && data.length > 0) {
-        // Normalize to expected slide shape (id, imageUrl, alt, description)
         const normalized = data.map((s) => ({
           id: s.id,
           imageUrl: s.imageUrl || s.image || '',
@@ -434,12 +406,13 @@ function Dashboard() {
           description: s.description || '',
         }));
         setHeroSlides(normalized);
+        setHasRealHeroData(true);
       } else {
-        setHeroSlides(getDefaultHeroSlides());
+        setHasRealHeroData(false);
       }
     } catch (error) {
-      console.warn('Failed to fetch hero slides from API, using defaults:', error);
-      setHeroSlides(getDefaultHeroSlides());
+      console.warn('Failed to fetch hero slides from API:', error);
+      setHasRealHeroData(false);
     }
   };
 
@@ -447,7 +420,6 @@ function Dashboard() {
     try {
       const data = await apiRequest<any[]>(API_ENDPOINTS.DASHBOARD.GET_HIGHLIGHT_CARDS);
       if (Array.isArray(data) && data.length > 0) {
-        // Normalize API response to ensure all fields are present
         const normalized = data.map((card: any) => ({
           id: card.id || '',
           title: card.title || 'Highlight Item',
@@ -456,11 +428,12 @@ function Dashboard() {
           position: card.position || 0
         }));
         setHighlightCards(normalized);
+        setHasRealHighlightData(true);
       } else {
-        setHighlightCards(getDefaultHighlightCards());
+        setHasRealHighlightData(false);
       }
     } catch (error) {
-      setHighlightCards(getDefaultHighlightCards());
+      setHasRealHighlightData(false);
     }
   };
 
@@ -488,98 +461,39 @@ function Dashboard() {
           summerBannerPriority: data.summerBannerPriority || 0
         };
         setSummerBanner(normalized);
+        setHasRealSummerBannerData(true);
       } else {
-        setSummerBanner(getDefaultSummerBanner());
+        setHasRealSummerBannerData(false);
       }
     } catch (error) {
-      console.warn('Failed to fetch summer banner from API, using defaults:', error);
-      setSummerBanner(getDefaultSummerBanner());
+      console.warn('Failed to fetch summer banner from API:', error);
+      setHasRealSummerBannerData(false);
     }
   };
 
-  const getDefaultHeroSlides = () => [
-    {
-      id: '1',
-      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop',
-      alt: 'Fashion Collection',
-      description: 'Discover the latest fashion trends'
-    },
-    {
-      id: '2',
-      imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&h=600&fit=crop',
-      alt: 'Luxury Shopping',
-      description: 'Experience luxury like never before'
-    },
-    {
-      id: '3',
-      imageUrl: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1200&h=600&fit=crop',
-      alt: 'Summer Collection',
-      description: 'New summer arrivals are here'
-    },
-    {
-      id: '4',
-      imageUrl: 'https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=1200&h=600&fit=crop',
-      alt: 'Forest path with tall trees',
-      description: 'Walk through ancient forests and connect with nature'
+  const fetchSectionVisibility = async () => {
+    try {
+      const data = await apiRequest<any>(API_ENDPOINTS.DASHBOARD.GET_CONFIG);
+      if (data) {
+        setSectionVisibility({
+          heroSlides: data.heroSlidesVisible !== false,
+          highlightCards: data.highlightCardsVisible !== false,
+          summerBanner: data.summerBannerVisible !== false,
+          landingPageHero: data.landingPageHeroVisible !== false,
+        });
+      }
+    } catch {
+      // Silent — use defaults (all visible)
     }
-  ];
+  };
 
-  const getDefaultHighlightCards = () => [
-    {
-      id: '1',
-      title: t('exclusiveShoes'),
-      description: t('priceOff', { percent: 20 }),
-      imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=500&fit=crop',
-      position: 0
-    },
-    {
-      id: '2',
-      title: t('exquisiteStyles'),
-      description: t('priceOff', { percent: 15 }),
-      imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=500&fit=crop',
-      position: 1
-    },
-    {
-      id: '3',
-      title: t('newArrivals'),
-      description: t('priceOff', { percent: 25 }),
-      imageUrl: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=500&fit=crop',
-      position: 2
-    },
-    {
-      id: '4',
-      title: t('exclusiveItems'),
-      description: t('priceOff', { percent: 30 }),
-      imageUrl: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=500&fit=crop',
-      position: 3
-    }
-  ];
-
-  const getDefaultSummerBanner = () => ({
-    id: 'default',
-    summerBannerTitle: 'SUMMER COLLECTIONS',
-    summerBannerDescription: 'Limited time offer - Don\'t miss out!',
-    summerBannerButtonText: 'SHOP NOW →',
-    summerBannerCountdownDays: 7,
-    summerBannerCountdownHours: 8,
-    summerBannerCountdownMinutes: 4,
-    summerBannerCountdownSeconds: 5,
-    summerBannerBackgroundImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop&crop=center'
-  });
-
-  // Your original translation function
   const t = (key: string, vars?: { [key: string]: string | number }) => {
     const translations: { [locale: string]: { [key: string]: string } } = {
       en: {
         thisWeeksHighlight: "This Week's Highlight",
-        exclusiveShoes: "Exclusive Collection",
-        exquisiteStyles: "Exquisite Styles",
-        priceOff: `Special Offer ${vars?.percent || 20}% off`,
         popularThisWeek: "Popular This Week",
-        brandsForYou: "Brands For You",
-        newArrivals: "New Arrivals",
-        exclusiveItems: "Exclusive Items"
-      } 
+        brandsForYou: "Brands For You"
+      }
     };
     let str = translations[locale]?.[key] || translations['en'][key] || key;
     if (vars) {
@@ -610,35 +524,12 @@ function Dashboard() {
     }
   };
 
-  // Create highlight cards from collections
-  const getHighlightCardsDisplay = () => {
-    // If we have highlight cards from API, use them
-    if (highlightCards.length > 0) {
-      return highlightCards.map(card => ({
-        title: card.title || 'Featured Item',
-        description: card.description || '',
-        image: card.imageUrl || card.image || ''
-      }));
-    }
-
-    // Fall back to collections if available
-    if (collections.length > 0) {
-      return collections.slice(0, 4).map((collection, index) => ({
-        title: collection.name || 'Featured Item',
-        description: collection.description || '',
-        image: collection.imageUrl || ''
-      }));
-    }
-
-    // Use default cards as last resort
-    return getDefaultHighlightCards().map(card => ({
-      title: card.title || 'Featured Item',
-      description: card.description || '',
-      image: card.imageUrl || ''
-    }));
-  };
-
-  const displayHighlightCards = getHighlightCardsDisplay();
+  // Map highlight cards to display format
+  const displayHighlightCards = highlightCards.map(card => ({
+    title: card.title || 'Featured Item',
+    description: card.description || '',
+    image: card.imageUrl || card.image || ''
+  }));
 
   return (
     <div className="min-h-screen">
@@ -647,78 +538,117 @@ function Dashboard() {
         <AnnouncementBar variant="banner" locale={locale} />
       </header>
 
-      <section>
-        <Carousel
-          slides={heroSlides.map(slide => ({
-            id: slide.id,
-            image: slide.imageUrl,
-            alt: slide.alt,
-            description: slide.description
-          }))}
-          height="500px"
-        />
-      </section>
-
-      <TextDivider text={t('thisWeeksHighlight')} />
-
-      <section className="py-8 px-4 max-w-7xl mx-auto">
-        {/* Desktop: Your original asymmetric layout, Mobile: 2-column grid */}
-        <article className="hidden md:flex justify-center gap-4 mb-4">
-          <TransparentImageCard
-            backgroundImage={displayHighlightCards[0]?.image}
-            title={displayHighlightCards[0]?.title}
-            subtitle={displayHighlightCards[0]?.title}
-            description={displayHighlightCards[0]?.description}
-            className="flex-[0_0_30%] min-w-[250px] h-96"
+      {/* Hero Section — Branded fallback when no slides configured or hero hidden */}
+      {sectionVisibility.heroSlides && hasRealHeroData && heroSlides.length > 0 ? (
+        <section>
+          <Carousel
+            slides={heroSlides.map(slide => ({
+              id: slide.id,
+              image: slide.imageUrl,
+              alt: slide.alt,
+              description: slide.description
+            }))}
+            height="500px"
           />
-          <TransparentImageCard
-            backgroundImage={displayHighlightCards[1]?.image}
-            title={displayHighlightCards[1]?.title}
-            subtitle={displayHighlightCards[1]?.title}
-            description={displayHighlightCards[1]?.description}
-            className="flex-[0_0_60%] min-w-[250px] h-96"
-          />
-        </article>
+        </section>
+      ) : (
+        <section
+          className="relative flex items-center justify-center overflow-hidden"
+          style={{ height: '500px', background: 'linear-gradient(135deg, #E3CCCB 0%, #E3DACB 50%, #f5e6df 100%)' }}
+        >
+          {/* Subtle ambient glow */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full opacity-[0.08]" style={{ background: 'radial-gradient(circle, #E3CCCB, transparent)' }} />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-[0.06]" style={{ background: 'radial-gradient(circle, #E3DACB, transparent)' }} />
+          </div>
+          <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.35em] mb-4 font-medium" style={{ color: '#7f1d1d99' }}>Curated Fashion &amp; Lifestyle</p>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: '#1f2937' }}>
+              The Babel Edit
+            </h1>
+            <div className="w-16 h-px mx-auto mb-6" style={{ backgroundColor: '#ef444466' }} />
+            <p className="text-base sm:text-lg max-w-lg mx-auto mb-8 leading-relaxed" style={{ color: '#6b7280' }}>
+              Discover handpicked collections of clothing, shoes, bags &amp; accessories — crafted for the modern you.
+            </p>
+            <Link
+              href={`/${locale}/products`}
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-white rounded-full font-semibold text-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+              style={{ backgroundColor: '#ef4444' }}
+            >
+              Shop Now
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            </Link>
+          </div>
+        </section>
+      )}
 
-        <article className="hidden md:flex justify-center gap-4">
-          <TransparentImageCard
-            backgroundImage={displayHighlightCards[2]?.image}
-            title={displayHighlightCards[2]?.title}
-            subtitle={displayHighlightCards[2]?.title}
-            description={displayHighlightCards[2]?.description}
-            className="flex-[0_0_60%] min-w-[250px] h-96"
-          />
-          <TransparentImageCard
-            backgroundImage={displayHighlightCards[3]?.image}
-            title={displayHighlightCards[3]?.title}
-            subtitle={displayHighlightCards[3]?.title}
-            description={displayHighlightCards[3]?.description}
-            className="flex-[0_0_30%] min-w-[250px] h-96"
-          />
-        </article>
+      {/* This Week's Highlight — only shown when real data exists and section is visible */}
+      {sectionVisibility.highlightCards && hasRealHighlightData && highlightCards.length > 0 && (
+        <>
+          <TextDivider text={t('thisWeeksHighlight')} />
 
-        {/* Mobile: 2x2 Grid */}
-        <div className="md:hidden grid grid-cols-2 gap-4">
-          {displayHighlightCards.map((card, index) => (
-            <TransparentImageCard
-              key={index}
-              backgroundImage={card.image}
-              title={card.title}
-              subtitle={card.title}
-              description={card.description}
-              className="h-64"
-            />
-          ))}
-        </div>
-      </section>
+          <section className="py-8 px-4 max-w-7xl mx-auto">
+            {/* Desktop: Asymmetric layout */}
+            <article className="hidden md:flex justify-center gap-4 mb-4">
+              <TransparentImageCard
+                backgroundImage={displayHighlightCards[0]?.image}
+                title={displayHighlightCards[0]?.title}
+                subtitle={displayHighlightCards[0]?.title}
+                description={displayHighlightCards[0]?.description}
+                className="flex-[0_0_30%] min-w-[250px] h-96"
+              />
+              <TransparentImageCard
+                backgroundImage={displayHighlightCards[1]?.image}
+                title={displayHighlightCards[1]?.title}
+                subtitle={displayHighlightCards[1]?.title}
+                description={displayHighlightCards[1]?.description}
+                className="flex-[0_0_60%] min-w-[250px] h-96"
+              />
+            </article>
 
+            <article className="hidden md:flex justify-center gap-4">
+              <TransparentImageCard
+                backgroundImage={displayHighlightCards[2]?.image}
+                title={displayHighlightCards[2]?.title}
+                subtitle={displayHighlightCards[2]?.title}
+                description={displayHighlightCards[2]?.description}
+                className="flex-[0_0_60%] min-w-[250px] h-96"
+              />
+              <TransparentImageCard
+                backgroundImage={displayHighlightCards[3]?.image}
+                title={displayHighlightCards[3]?.title}
+                subtitle={displayHighlightCards[3]?.title}
+                description={displayHighlightCards[3]?.description}
+                className="flex-[0_0_30%] min-w-[250px] h-96"
+              />
+            </article>
+
+            {/* Mobile: 2x2 Grid */}
+            <div className="md:hidden grid grid-cols-2 gap-4">
+              {displayHighlightCards.map((card, index) => (
+                <TransparentImageCard
+                  key={index}
+                  backgroundImage={card.image}
+                  title={card.title}
+                  subtitle={card.title}
+                  description={card.description}
+                  className="h-64"
+                />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {(loading || (!error && featuredProducts.length > 0)) && (
+      <>
       <TextDivider text={t('popularThisWeek')} />
 
-      <section className="py-16 md:py-20 relative max-w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, #f8f9fc 0%, #eef1f8 50%, #f8f9fc 100%)' }}>
+      <section className="py-16 md:py-20 relative max-w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, #faf5f4 0%, #f0e8e4 50%, #faf5f4 100%)' }}>
         {/* Decorative background elements */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #ec4899, transparent)' }} />
+          <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #E3CCCB, transparent)' }} />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #ef4444, transparent)' }} />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 relative">
@@ -793,7 +723,8 @@ function Dashboard() {
                   </p>
                   <button
                     onClick={() => fetchFeaturedProducts(8, true)}
-                    className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                    className="px-8 py-3 text-white rounded-full font-semibold text-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                    style={{ backgroundColor: '#ef4444' }}
                   >
                     Try Again
                   </button>
@@ -805,16 +736,17 @@ function Dashboard() {
               ) : (
                 // Empty state
                 <div className="flex flex-col items-center justify-center py-16 px-4 w-full">
-                  <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-5">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ backgroundColor: '#E3CCCB33' }}>
                     <span className="text-4xl">📦</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Featured Products</h3>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: '#1f2937' }}>No Featured Products</h3>
                   <p className="text-gray-500 text-center max-w-sm text-sm leading-relaxed">
                     Our featured collection is being refreshed. Check back soon for handpicked selections.
                   </p>
                   <button
                     onClick={() => fetchFeaturedProducts(8, true)}
-                    className="mt-5 px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                    className="mt-5 px-8 py-3 text-white rounded-full font-semibold text-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                    style={{ backgroundColor: '#ef4444' }}
                   >
                     Refresh
                   </button>
@@ -857,6 +789,8 @@ function Dashboard() {
           div::-webkit-scrollbar { display: none; }
         `}</style>
       </section>
+      </>
+      )}
 
       <AnnouncementBar variant="banner" locale={locale} />
       <TextDivider text={t('brandsForYou')} />
@@ -918,8 +852,8 @@ function Dashboard() {
       </section>
 
       <section className="py-8 px-4 max-w-7xl mx-auto">
-        {/* Summer Banner Carousel — with scheduling support */}
-        {(() => {
+        {/* Summer Banner Carousel — only shown when real data configured and section is visible */}
+        {sectionVisibility.summerBanner && hasRealSummerBannerData && summerBanner && (() => {
           // Check scheduling: hide banner if outside date range
           const now = new Date();
           const startDate = summerBanner?.summerBannerStartDate ? new Date(summerBanner.summerBannerStartDate) : null;
@@ -932,18 +866,34 @@ function Dashboard() {
           const bannerBgColor = summerBanner?.summerBannerBgColor || null;
 
           return (
-            <div className="relative rounded-2xl overflow-hidden group">
+            <div className="relative rounded-2xl overflow-hidden group min-h-[400px] md:min-h-[500px]">
               {(() => {
-                const bannerImage = summerBanner?.summerBannerBackgroundImage || getDefaultSummerBanner().summerBannerBackgroundImage;
+                const bannerImage = summerBanner.summerBannerBackgroundImage;
+                
+                // No image or empty string — render a gradient fallback background
+                if (!bannerImage || bannerImage.trim() === '') {
+                  return (
+                    <div
+                      className="absolute inset-0 w-full h-full"
+                      style={{
+                        background: bannerBgColor
+                          ? `linear-gradient(135deg, ${bannerBgColor}, ${bannerBgColor}cc, ${bannerBgColor}88)`
+                          : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)'
+                      }}
+                    />
+                  );
+                }
+
                 const isBackendUrl = isBackendImageUrl(bannerImage);
                 
                 return isBackendUrl ? (
                   <img
                     src={bannerImage}
                     alt="Summer Collection"
-                    className="w-full h-auto min-h-[400px] md:min-h-[500px] object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"%3E%3Crect fill="%23d1d5db" width="1200" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="%239ca3af"%3ESummer Banner%3C/text%3E%3C/svg%3E';
+                      // On error, hide the broken image — the gradient overlay will serve as background
+                      (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 ) : (
@@ -952,7 +902,7 @@ function Dashboard() {
                     alt="Summer Collection"
                     width={1200}
                     height={600}
-                    className="w-full h-auto object-cover min-h-[400px] md:min-h-[500px]"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 );
               })()}
@@ -974,17 +924,17 @@ function Dashboard() {
                     className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg"
                     style={{ color: bannerTextColor }}
                   >
-                    {summerBanner?.summerBannerTitle || getDefaultSummerBanner().summerBannerTitle}
+                    {summerBanner.summerBannerTitle}
                   </h2>
                   <p
                     className="text-lg mb-8 drop-shadow-md font-semibold"
                     style={{ color: bannerTextColor }}
                   >
-                    {summerBanner?.summerBannerDescription || getDefaultSummerBanner().summerBannerDescription}
+                    {summerBanner.summerBannerDescription}
                   </p>
                   <div className="flex flex-col sm:flex-row items-center md:items-start gap-3">
                     <button className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                      {summerBanner?.summerBannerButtonText || getDefaultSummerBanner().summerBannerButtonText}
+                      {summerBanner.summerBannerButtonText}
                     </button>
                     {summerBanner?.summerBannerLinkText && summerBanner?.summerBannerLinkUrl && (
                       <Link
@@ -1001,21 +951,21 @@ function Dashboard() {
                   <div className="flex justify-center md:justify-start gap-2 mt-10" style={{ color: bannerTextColor }}>
                     <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
                       <div className="text-2xl md:text-3xl font-bold">
-                        {String(summerBanner?.summerBannerCountdownDays || getDefaultSummerBanner().summerBannerCountdownDays).padStart(2, '0')}
+                        {String(summerBanner.summerBannerCountdownDays).padStart(2, '0')}
                       </div>
                       <div className="text-xs md:text-sm opacity-80">Days</div>
                     </div>
                     <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
                     <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
                       <div className="text-2xl md:text-3xl font-bold">
-                        {String(summerBanner?.summerBannerCountdownHours || getDefaultSummerBanner().summerBannerCountdownHours).padStart(2, '0')}
+                        {String(summerBanner.summerBannerCountdownHours).padStart(2, '0')}
                       </div>
                       <div className="text-xs md:text-sm opacity-80">Hours</div>
                     </div>
                     <div className="flex items-center text-2xl md:text-3xl opacity-50">:</div>
                     <div className="text-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-lg border border-white/20">
                       <div className="text-2xl md:text-3xl font-bold">
-                        {String(summerBanner?.summerBannerCountdownMinutes || getDefaultSummerBanner().summerBannerCountdownMinutes).padStart(2, '0')}
+                        {String(summerBanner.summerBannerCountdownMinutes).padStart(2, '0')}
                       </div>
                       <div className="text-xs md:text-sm opacity-80">Mins</div>
                     </div>
@@ -1027,6 +977,8 @@ function Dashboard() {
         })()}
       </section>
 
+      {/* Testimonials — only shown when real testimonials exist */}
+      {(testimonialsLoading || testimonials.length > 0) && (
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="mb-8">
@@ -1038,16 +990,12 @@ function Dashboard() {
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
             </div>
-          ) : testimonials.length > 0 ? (
-            <FeedbackCarousel testimonials={testimonials} />
           ) : (
-            <div className="py-8">
-              <p className="text-gray-500 mb-4">No testimonials yet.</p>
-              <p className="text-sm text-gray-400">Check back soon to see what our customers are saying!</p>
-            </div>
+            <FeedbackCarousel testimonials={testimonials} />
           )}
         </div>
       </section>
+      )}
 
       {/* Featured Feedback Section */}
       {featuredFeedbacks && featuredFeedbacks.length > 0 && (

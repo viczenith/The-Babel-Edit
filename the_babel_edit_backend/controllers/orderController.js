@@ -177,7 +177,7 @@ export const createOrder = async (req, res) => {
       });
 
       return order;
-    });
+    }, { timeout: 30000 });
 
       // Fetch the full order details to return
       const newOrder = await prisma.order.findUnique({
@@ -430,7 +430,7 @@ export const cancelOrder = async (req, res) => {
           }
         });
       }
-    });
+    }, { timeout: 30000 });
 
     // Audit: order cancelled
     await appendAuditLog({
@@ -650,34 +650,42 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // ── Status transition validation ──
-    const allowed = ALLOWED_TRANSITIONS[oldOrder.status];
-    if (!allowed || !allowed.includes(status)) {
-      return res.status(400).json({
-        message: `Cannot transition from ${oldOrder.status} to ${status}. Allowed transitions: ${(allowed || []).join(', ') || 'none'}`
-      });
+    // ── Determine if this is a status change or tracking-only update ──
+    const isStatusChange = status !== oldOrder.status;
+
+    // ── Status transition validation (only when status is actually changing) ──
+    if (isStatusChange) {
+      const allowed = ALLOWED_TRANSITIONS[oldOrder.status];
+      if (!allowed || !allowed.includes(status)) {
+        return res.status(400).json({
+          message: `Cannot transition from ${oldOrder.status} to ${status}. Allowed transitions: ${(allowed || []).join(', ') || 'none'}`
+        });
+      }
     }
 
     // Build update data
-    const updateData = { status };
+    const updateData = {};
+    if (isStatusChange) updateData.status = status;
     
     if (trackingNumber) updateData.trackingNumber = trackingNumber;
     if (estimatedDelivery) updateData.estimatedDelivery = new Date(estimatedDelivery);
 
-    // Set lifecycle timestamps based on new status
-    if (status === 'SHIPPED') {
-      updateData.paymentStatus = 'PAID';
-      updateData.shippedAt = new Date();
-    }
-    if (status === 'DELIVERED') {
-      updateData.deliveredAt = new Date();
-    }
-    if (status === 'CANCELLED') {
-      updateData.cancelledAt = new Date();
+    // Set lifecycle timestamps based on new status (only on actual status change)
+    if (isStatusChange) {
+      if (status === 'SHIPPED') {
+        updateData.paymentStatus = 'PAID';
+        updateData.shippedAt = new Date();
+      }
+      if (status === 'DELIVERED') {
+        updateData.deliveredAt = new Date();
+      }
+      if (status === 'CANCELLED') {
+        updateData.cancelledAt = new Date();
+      }
     }
 
     // ── Handle CANCELLED / REFUNDED: restore stock + Stripe refund ──
-    if (status === 'CANCELLED' || status === 'REFUNDED') {
+    if (isStatusChange && (status === 'CANCELLED' || status === 'REFUNDED')) {
       // Set payment status
       updateData.paymentStatus = oldOrder.paymentStatus === 'PAID' ? 'REFUNDED' : oldOrder.paymentStatus;
       if (status === 'REFUNDED') {
@@ -695,7 +703,7 @@ export const updateOrderStatus = async (req, res) => {
             data: { stock: { increment: item.quantity } }
           });
         }
-      });
+      }, { timeout: 30000 });
 
       // ── Stripe refund (if paid via Stripe and has paymentIntentId) ──
       if (status === 'REFUNDED' && oldOrder.paymentIntentId && oldOrder.paymentStatus === 'PAID') {
@@ -720,7 +728,7 @@ export const updateOrderStatus = async (req, res) => {
         }
       }
     } else {
-      // Normal status update (no stock changes)
+      // Normal status update or tracking-only update (no stock changes)
       await prisma.order.update({
         where: { id: orderId },
         data: updateData
@@ -750,11 +758,18 @@ export const updateOrderStatus = async (req, res) => {
       req,
     });
 
-    // ── Send status change email to customer ──
+    // ── Send email to customer ──
     try {
-      await sendStatusChangeEmail(oldOrder, status, trackingNumber, estimatedDelivery);
+      if (isStatusChange) {
+        // Status changed — send status change email
+        await sendStatusChangeEmail(oldOrder, status, trackingNumber, estimatedDelivery);
+      } else if (trackingNumber && trackingNumber !== oldOrder.trackingNumber) {
+        // Tracking-only update — send tracking update email
+        await sendTrackingUpdateEmail(oldOrder, trackingNumber);
+      }
     } catch (emailError) {
       // Don't fail the response for email errors
+      console.error('[EMAIL] Failed to send order update email:', emailError.message);
     }
 
     res.json({ 
@@ -776,12 +791,14 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
   if (!order.user?.email) return;
 
   const customerName = `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim() || order.user.email;
-  const orderDetailsUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders/${order.id}`;
+  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const orderDetailsUrl = `${frontendUrl}/en/orders/${order.id}`;
   const formatCurrency = (amount) => `$${Number(amount).toFixed(2)}`;
 
   let subject = '';
   let statusMessage = '';
   let statusColor = '#333333';
+  let reviewSection = '';
 
   switch (newStatus) {
     case 'CONFIRMED':
@@ -808,6 +825,13 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
       subject = `Your Order #${order.orderNumber} Has Been Delivered`;
       statusMessage = 'Your order has been delivered! We hope you enjoy your purchase. If you have any issues, please don\'t hesitate to contact us.';
       statusColor = '#16a34a'; // green
+      reviewSection = `
+        <div style="margin: 28px 0; padding: 24px; background: linear-gradient(135deg, #fef3c7, #fefce8); border-radius: 12px; text-align: center; border: 1px solid #fde68a;">
+          <p style="font-size: 16px; font-weight: 700; color: #92400e; margin: 0 0 8px;">How was your experience? ⭐</p>
+          <p style="font-size: 14px; color: #78350f; margin: 0 0 16px;">Your feedback helps other shoppers and helps us improve.</p>
+          <a href="${frontendUrl}/en/orders" style="display: inline-block; padding: 12px 28px; background-color: #f59e0b; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px;">Leave a Review</a>
+        </div>
+      `;
       break;
     case 'CANCELLED':
       subject = `Your Order #${order.orderNumber} Has Been Cancelled`;
@@ -847,6 +871,7 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
           <p style="line-height: 1.6; margin: 16px 0;"><strong>Order Total:</strong> ${formatCurrency(order.total)}</p>
           <p style="margin-top: 24px;">You can view your full order details below:</p>
           <a href="${orderDetailsUrl}" style="display: inline-block; padding: 12px 24px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 4px; margin-top: 12px;">View Your Order</a>
+          ${reviewSection}
         </div>
         <div style="background-color: #f2f2f2; padding: 24px; text-align: center; font-size: 12px; color: #888888;">
           <p>&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
@@ -859,6 +884,55 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
   await sendEmail({
     to: order.user.email,
     subject,
+    html
+  });
+};
+
+// ─── Send tracking update email (tracking-only, no status change) ──────────
+const sendTrackingUpdateEmail = async (order, trackingNumber) => {
+  if (!order.user?.email) return;
+
+  const customerName = `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim() || order.user.email;
+  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const orderDetailsUrl = `${frontendUrl}/en/orders/${order.id}`;
+  const formatCurrency = (amount) => `$${Number(amount).toFixed(2)}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Tracking Number Updated</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+      <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #000000; color: #ffffff; padding: 24px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">The Babel Edit</h1>
+        </div>
+        <div style="padding: 32px; color: #333333;">
+          <h2 style="font-size: 20px; color: #000000;">Hi ${customerName},</h2>
+          <p style="line-height: 1.6; margin: 16px 0;">Your tracking information has been updated for order <strong>#${order.orderNumber}</strong>.</p>
+          <div style="margin: 24px 0; padding: 20px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center;">
+            <p style="margin: 0 0 4px; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Tracking Number</p>
+            <p style="margin: 0; font-size: 22px; font-weight: bold; color: #1d4ed8; font-family: monospace;">${trackingNumber}</p>
+          </div>
+          <p style="line-height: 1.6; margin: 16px 0;"><strong>Order Number:</strong> ${order.orderNumber}</p>
+          <p style="line-height: 1.6; margin: 16px 0;"><strong>Order Total:</strong> ${formatCurrency(order.total)}</p>
+          <p style="margin-top: 24px;">You can track your order and view full details below:</p>
+          <a href="${orderDetailsUrl}" style="display: inline-block; padding: 12px 24px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 4px; margin-top: 12px;">View Your Order</a>
+        </div>
+        <div style="background-color: #f2f2f2; padding: 24px; text-align: center; font-size: 12px; color: #888888;">
+          <p>&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  await sendEmail({
+    to: order.user.email,
+    subject: `Tracking Update for Order #${order.orderNumber}`,
     html
   });
 };
@@ -945,7 +1019,7 @@ export const createOrderFromCheckout = async (req, res) => {
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create order with items in a transaction
+    // Create order with items in a transaction (extended timeout for slow DB connections)
     const order = await prisma.$transaction(async (tx) => {
       // Re-check stock inside transaction to prevent race conditions (concurrent orders)
       for (const { item, product } of productData) {
@@ -1019,7 +1093,7 @@ export const createOrderFromCheckout = async (req, res) => {
         });
       }
       return newOrder;
-    });
+    }, { timeout: 30000 });
 
     // Fetch the complete order with items
     const completeOrder = await prisma.order.findUnique({
@@ -1101,6 +1175,15 @@ export const confirmOrderPayment = async (req, res) => {
         paymentStatus: 'PAID',
         status: 'CONFIRMED',
       },
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        shippingAddress: true,
+      },
     });
 
     // Audit log: payment confirmed for order
@@ -1112,6 +1195,14 @@ export const confirmOrderPayment = async (req, res) => {
       user: { id: req.user?.userId || null, email: req.user?.email || null, role: req.user?.role || null },
       req,
     });
+
+    // Send confirmation emails (non-blocking)
+    try {
+      const { sendConfirmationEmails } = await import('./paymentController.js');
+      await sendConfirmationEmails(updatedOrder);
+    } catch (emailErr) {
+      console.error('[EMAIL] Failed to send order confirmation emails:', emailErr.message);
+    }
 
     res.json({ message: 'Payment confirmed successfully', order: updatedOrder });
   } catch (error) {

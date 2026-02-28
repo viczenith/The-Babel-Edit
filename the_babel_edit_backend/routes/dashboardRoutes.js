@@ -17,6 +17,7 @@ router.post("/admin/dashboard/highlight-cards", authenticateToken, checkRole(['A
 router.post("/admin/dashboard/summer-banner", authenticateToken, checkRole(['ADMIN', 'SUPER_ADMIN']), dashboardController.updateSummerBanner);
 router.post("/admin/dashboard/landing-page", authenticateToken, checkRole(['ADMIN', 'SUPER_ADMIN']), dashboardController.updateLandingPage);
 router.post("/admin/dashboard/config", authenticateToken, checkRole(['ADMIN', 'SUPER_ADMIN']), dashboardController.updateDashboardConfig);
+router.post("/admin/dashboard/toggle-visibility", authenticateToken, checkRole(['ADMIN', 'SUPER_ADMIN']), dashboardController.toggleSectionVisibility);
 
 export default router;
 

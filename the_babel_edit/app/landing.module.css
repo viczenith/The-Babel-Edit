@@ -9,8 +9,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background-color: transparent;
     position: fixed;
     top: 0;
     left: 0;
@@ -28,172 +27,20 @@
 }
 
 .navLink {
-    color: var(--color-primary);
+    color: #fff;
     text-decoration: none;
     font-size: var(--font-size-md);
     font-weight: 500;
     transition: color 0.2s ease;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .navLink:hover {
-    color: var(--color-accent);
+    color: #E3CCCB;
 }
 
 .main {
     flex: 1;
-    margin-top: 80px;
-}
-
-.hero {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem;
-}
-
-.heroContent {
-    max-width: 800px;
-}
-
-.title {
-    font-size: 2rem;
-    color: var(--color-accent);
-    margin-bottom: 1rem;
-    font-weight: 600;
-}
-
-.subtitle {
-    font-size: 1rem;
-    color: var(--color-secondary);
-    margin-bottom: 2rem;
-}
-
-.ctaButton {
-    display: inline-block;
-    padding: 1rem 2rem;
-    background-color: var(--color-accent);
-    color: white;
-    text-decoration: none;
-    border-radius: var(--border-radius-md);
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.ctaButton:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    background-color: var(--color-accent);
-    color: white;
-}
-
-.features {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 2rem 1rem;
-}
-
-.featureCard {
-    text-align: center;
-    padding: 1.5rem;
-    border-radius: var(--border-radius-lg);
-    background-color: var(--pColor);
-    transition: transform 0.3s ease;
-    box-shadow: 0 0 0 2px white;
-}
-
-.featureCard:hover {
-    transform: translateY(-5px);
-}
-
-.featureIcon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-
-.featureCard h2 {
-    color: var(--color-primary);
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
-
-.featureCard p {
-    color: var(--color-secondary);
-    line-height: 1.6;
-}
-
-.cta {
-    text-align: center;
-    padding: 2rem 1rem;
-    background-color: var(--pColor);
-
-}
-
-.cta h2 {
-    color: var(--color-primary);
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-}
-
-.cta p {
-    color: var(--color-secondary);
-    margin-bottom: 2rem;
-    font-size: 1.2rem;
-}
-
-.footer {
-    background-color: var(--color-primary);
-    color: white;
-    padding: 2rem 1rem 1rem;
-}
-
-.footerContent {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.footerSection {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.footerSection h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.footerSection a {
-    color: white;
-    text-decoration: none;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-}
-
-.footerSection a:hover {
-    opacity: 1;
-}
-
-.socialLinks {
-    display: flex;
-    gap: 1rem;
-}
-
-.socialLinks a {
-    font-size: 1.5rem;
-}
-
-.copyright {
-    text-align: center;
-    padding-top: 2rem;
-    margin-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    opacity: 0.8;
 }
 
 .hamburger {
@@ -216,14 +63,13 @@
 .hamburgerLine {
     width: 2rem;
     height: 0.25rem;
-    background: var(--color-primary);
+    background: #fff;
     border-radius: 10px;
     transition: all 0.3s linear;
     position: relative;
     transform-origin: 1px;
 }
 
-/* Mobile-first styles */
 @media (min-width: 768px) {
     .nav {
         display: flex;
@@ -231,31 +77,6 @@
 
     .hamburger {
         display: none;
-    }
-
-    .title {
-        font-size: 3.5rem;
-    }
-
-    .subtitle {
-        font-size: 1.5rem;
-    }
-
-    .features {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        padding: 4rem 2rem;
-    }
-
-    .cta {
-        padding: 4rem 2rem;
-    }
-
-    .cta h2 {
-        font-size: 2.5rem;
-    }
-
-    .footerContent {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     }
 }
 
@@ -266,7 +87,8 @@
     top: 80px;
     left: 0;
     right: 0;
-    background-color: white;
+    background-color: rgba(0,0,0,0.9);
+    backdrop-filter: blur(12px);
     padding: 2rem;
     gap: 1rem;
     box-shadow: var(--shadow-md);

@@ -353,7 +353,7 @@ const StoreConfiguration: React.FC<{
         <label className="block text-xs font-medium text-gray-700 mb-1">Timezone</label>
         <select
           className="w-full p-2 border rounded text-sm"
-          value={localValues.store_timezone || 'Europe/London'}
+          value={localValues.store_timezone || 'America/Chicago'}
           onChange={e => { setLocalValues(prev => ({ ...prev, store_timezone: e.target.value })); onUpdate('store_timezone', e.target.value); }}
           disabled={saving === 'store_timezone'}
         >
@@ -1062,7 +1062,7 @@ const BrandingContactSettings: React.FC<{
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact Information</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {textField('store_phone', 'Phone Number', '+44 20 7946 0958', 'tel')}
-          {textField('store_address', 'Business Address', '123 Fashion Street, London, UK')}
+          {textField('store_address', 'Business Address', '1616 Whistler Drive, Little Elm, TX 75068')}
         </div>
       </div>
 

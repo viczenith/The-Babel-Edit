@@ -318,6 +318,11 @@ model HighlightCard {
 
 model DashboardConfig {
   id                    String   @id @default(cuid())
+  // Section Visibility Toggles
+  heroSlidesVisible     Boolean  @default(true)
+  highlightCardsVisible Boolean  @default(true)
+  summerBannerVisible   Boolean  @default(true)
+  landingPageHeroVisible Boolean @default(true)
   // Summer Banner fields
   summerBannerTitle     String   @default("Summer Collection")
   summerBannerDescription String @default("Limited time offer - Don't miss out!")

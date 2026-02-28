@@ -80,8 +80,8 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
               <FormLabel>Message</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us how we can improve..."
-                  className="resize-none bg-white"
+                  placeholder="What's on your mind? Share your experience, ideas, or anything you'd like us to know..."
+                  className="resize-none bg-white min-h-[140px]"
                   {...field}
                 />
               </FormControl>
@@ -90,8 +90,13 @@ export function FeedbackForm({ onSubmit }: FeedbackFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Sending...' : 'Send Feedback'}
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="w-full sm:w-auto px-8 py-2.5 font-semibold"
+          style={{ backgroundColor: '#111827' }}
+        >
+          {isSubmitting ? 'Sending...' : 'Submit Feedback'}
         </Button>
       </form>
     </Form>

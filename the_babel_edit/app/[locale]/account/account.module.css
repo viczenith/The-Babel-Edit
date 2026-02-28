@@ -151,6 +151,134 @@
   gap: 1.5rem;
 }
 
+.tabTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #232323;
+  margin: 0;
+}
+
+.tabDescription {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.feedbackHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.feedbackIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tabHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ordersTab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.addressesTab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.addressesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.addressItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f6f1ef;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.addressDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.addressMeta {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.addressActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.editBtn {
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  border-color: #111827;
+  color: #111827;
+}
+
+.deleteBtn {
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #fca5a5;
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
 .labelRow {
   display: flex;
   align-items: center;
@@ -418,5 +546,41 @@
   }
   .profileContent {
     padding: 1.5rem 1rem;
+  }
+  .tabTitle {
+    font-size: 1.25rem;
+  }
+  .tabDescription {
+    font-size: 0.9rem;
+  }
+  .feedbackHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .tabHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .addressItem {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .addressActions {
+    width: 100%;
+  }
+  .addressActions button {
+    flex: 1;
+  }
+  .addressRow {
+    grid-template-columns: 1fr;
+  }
+  .addressForm {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  .profileHeader {
+    flex-direction: column;
+    text-align: center;
   }
 }

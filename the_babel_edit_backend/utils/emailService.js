@@ -1,11 +1,5 @@
 import nodemailer from 'nodemailer';
 
-// It is recommended to use a transactional email service like SendGrid, Mailgun, or AWS SES in production.
-// This setup uses SendGrid. Add the following to your .env file:
-//
-// SENDGRID_API_KEY="your_sendgrid_api_key"
-// EMAIL_FROM="Your Name <noreply@yourdomain.com>" 
-// COMPANY_EMAIL="support@thebabeledit.com"
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.sendgrid.net',
