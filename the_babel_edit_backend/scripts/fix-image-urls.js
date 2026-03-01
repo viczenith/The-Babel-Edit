@@ -36,8 +36,8 @@ async function fixUrls() {
     'http://localhost:5001',
     'http://localhost:5002',
     'http://localhost:5003',
-    'https://the-babel-edit-backend-vv75.onrender.com',
-    'http://the-babel-edit-backend-vv75.onrender.com',
+    'https://the-babel-edit-backend-ov3y.onrender.com',
+    'http://the-babel-edit-backend-ov3y.onrender.com',
   ];
 
   // Tables and columns that may contain image URLs
