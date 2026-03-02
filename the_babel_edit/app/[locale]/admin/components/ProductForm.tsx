@@ -187,8 +187,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, preselecte
         uploadFormData.append('image', file);
 
         try {
+          // Resolve type ID to type name for Cloudinary folder path
+          const typeName = formData.type
+            ? availableTypes.find(t => t.id === formData.type)?.name
+            : undefined;
           const response = await apiRequest<{ imageUrl: string }>(
-            API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE(formData.category, formData.type),
+            API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE(formData.category, typeName),
             {
               method: 'POST',
               body: uploadFormData,

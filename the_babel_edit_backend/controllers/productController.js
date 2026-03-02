@@ -1,6 +1,7 @@
 import prisma from '../prismaClient.js';
 import { appendAuditLog } from './adminController.js';
 import { toRelativePath } from '../utils/urlUtils.js';
+import { deleteFromCloudinary, deleteMultipleFromCloudinary } from '../config/cloudinary.js';
 
 // Helper functions for string matching (used across multiple controller functions)
 const strContains = (val) => ({ contains: val });
@@ -311,6 +312,19 @@ export const getProductById = async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { id, isActive: true },
       include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        type: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         collection: {
           select: {
             id: true,
@@ -937,6 +951,23 @@ export const updateProduct = async (req, res) => {
     // Capture old values for audit diff
     const oldProduct = await prisma.product.findUnique({ where: { id }, select: Object.keys(updateData).reduce((acc, k) => ({ ...acc, [k]: true }), { id: true, name: true }) });
 
+    // Delete old images from Cloudinary if being replaced
+    if (oldProduct) {
+      if (imageUrl !== undefined && oldProduct.imageUrl && oldProduct.imageUrl !== toRelativePath(imageUrl)) {
+        deleteFromCloudinary(oldProduct.imageUrl).catch(() => {});
+      }
+      if (images !== undefined && oldProduct.images) {
+        const oldImages = Array.isArray(oldProduct.images)
+          ? oldProduct.images
+          : (typeof oldProduct.images === 'string' ? (() => { try { return JSON.parse(oldProduct.images); } catch { return []; } })() : []);
+        const newImages = Array.isArray(images) ? images.map(img => typeof img === 'string' ? toRelativePath(img) : img) : [];
+        const removedImages = oldImages.filter(old => !newImages.includes(old));
+        if (removedImages.length > 0) {
+          deleteMultipleFromCloudinary(removedImages).catch(() => {});
+        }
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
@@ -1191,6 +1222,27 @@ export const deleteProduct = async (req, res) => {
 export const hardDeleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Fetch product to get image URLs before deletion
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { imageUrl: true, images: true },
+    });
+
+    // Delete all product images from Cloudinary
+    if (product) {
+      const allImageUrls = [];
+      if (product.imageUrl) allImageUrls.push(product.imageUrl);
+      const images = Array.isArray(product.images)
+        ? product.images
+        : (typeof product.images === 'string' ? (() => { try { return JSON.parse(product.images); } catch { return []; } })() : []);
+      allImageUrls.push(...images.filter(img => typeof img === 'string'));
+      // Deduplicate
+      const uniqueUrls = [...new Set(allImageUrls)];
+      if (uniqueUrls.length > 0) {
+        deleteMultipleFromCloudinary(uniqueUrls).catch(() => {});
+      }
+    }
 
     await prisma.product.delete({
       where: { id },

@@ -100,9 +100,12 @@ const createDynamicUploader = (baseFolder = 'ecommerce/products') => {
           if (req.query.folder)   parts.push(slugify(req.query.folder));
           const folder = parts.join('/');
 
+          console.log(`📁 Cloudinary dynamic folder: ${folder}`);
+
           return {
             folder,
-            allowed_formats: ['jpeg', 'png', 'jpg'],
+            allowed_formats: ['jpeg', 'png', 'jpg', 'webp', 'mp4', 'mov', 'webm'],
+            resource_type: 'auto',
           };
         },
       })
@@ -141,6 +144,90 @@ export const uploadDashboardImages = dashboardUpload.array('images', 5);
 export const upload = generalUpload;
 export const uploadSingle   = generalUpload.single('image');
 export const uploadMultiple = generalUpload.array('images', 5);
+
+// ── Cloudinary deletion helpers ─────────────────────────────────
+export const extractPublicId = (url) => {
+  if (!url || typeof url !== 'string') return null;
+  if (!url.includes('res.cloudinary.com')) return null;
+
+  try {
+    // Pattern: .../upload/v<digits>/<public_id>.<ext>
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Delete a single asset from Cloudinary by its public_id or URL.
+ * Silently ignores non-Cloudinary URLs and missing assets.
+ */
+export const deleteFromCloudinary = async (urlOrPublicId) => {
+  if (!isConfigured) return;
+
+  // Detect resource type from URL path (videos use /video/upload/)
+  const isVideo = typeof urlOrPublicId === 'string' && urlOrPublicId.includes('/video/upload/');
+
+  const publicId =
+    urlOrPublicId && urlOrPublicId.includes('res.cloudinary.com')
+      ? extractPublicId(urlOrPublicId)
+      : urlOrPublicId;
+
+  if (!publicId) return;
+
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: isVideo ? 'video' : 'image',
+    });
+    if (result.result === 'ok') {
+      console.log(`🗑️ Cloudinary: deleted ${isVideo ? 'video' : 'image'} ${publicId}`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ Cloudinary delete failed for ${publicId}:`, err.message);
+  }
+};
+
+/**
+ * Delete multiple assets from Cloudinary.
+ * Accepts an array of URLs or public_ids.
+ */
+export const deleteMultipleFromCloudinary = async (urls) => {
+  if (!isConfigured || !Array.isArray(urls) || urls.length === 0) return;
+
+  // Separate image and video public IDs — Cloudinary API requires them in distinct calls
+  const imageIds = [];
+  const videoIds = [];
+
+  for (const url of urls) {
+    if (typeof url !== 'string') continue;
+    const publicId = extractPublicId(url);
+    if (!publicId) continue;
+    if (url.includes('/video/upload/')) {
+      videoIds.push(publicId);
+    } else {
+      imageIds.push(publicId);
+    }
+  }
+
+  try {
+    let totalDeleted = 0;
+    if (imageIds.length > 0) {
+      const result = await cloudinary.api.delete_resources(imageIds, { resource_type: 'image' });
+      totalDeleted += Object.values(result.deleted || {}).filter((v) => v === 'deleted').length;
+    }
+    if (videoIds.length > 0) {
+      const result = await cloudinary.api.delete_resources(videoIds, { resource_type: 'video' });
+      totalDeleted += Object.values(result.deleted || {}).filter((v) => v === 'deleted').length;
+    }
+    const total = imageIds.length + videoIds.length;
+    if (total > 0) {
+      console.log(`🗑️ Cloudinary: deleted ${totalDeleted}/${total} assets`);
+    }
+  } catch (err) {
+    console.warn('⚠️ Cloudinary bulk delete failed:', err.message);
+  }
+};
 
 // Error handling middleware for multer errors
 export const handleUploadError = (err, req, res, next) => {

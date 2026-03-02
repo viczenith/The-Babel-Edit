@@ -51,6 +51,7 @@ const EditProductPage = () => {
     stock: '',
     sku: '',
     category: '',
+    type: '',
     sizes: '',
     colors: '',
     tags: '',
@@ -59,6 +60,7 @@ const EditProductPage = () => {
     isFeatured: false,
     isActive: true,
   });
+  const [availableTypes, setAvailableTypes] = useState<any[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [apiError, setApiError] = useState<string>('');
 
@@ -70,6 +72,21 @@ const EditProductPage = () => {
       fetchProduct();
     }
   }, [productId]);
+
+  // Update available types when category changes or categories load
+  useEffect(() => {
+    const selectedCategory = dynamicCategories.find(cat => cat.slug === formData.category);
+    if (selectedCategory) {
+      const types = selectedCategory.types || [];
+      setAvailableTypes(types);
+      // Reset type if it's not in the new category
+      if (formData.type && !types.find((t: any) => t.id === formData.type)) {
+        setFormData(prev => ({ ...prev, type: '' }));
+      }
+    } else {
+      setAvailableTypes([]);
+    }
+  }, [formData.category, dynamicCategories]);
 
   const fetchProduct = async () => {
     setIsFetching(true);
@@ -91,7 +108,8 @@ const EditProductPage = () => {
         images: Array.isArray(response.images) ? response.images : [],
         stock: response.stock?.toString() || '',
         sku: response.sku || '',
-        category: ensureString(response.category),
+        category: ensureString(response.category) || response.categoryName || '',
+        type: ensureString(response.type),
         sizes: ensureArray(response.sizes).join(', '),
         colors: ensureArray(response.colors).join(', '),
         tags: ensureArray(response.tags).join(', '),
@@ -119,8 +137,12 @@ const EditProductPage = () => {
         uploadFormData.append('images', file);
       }
 
+      // Resolve type ID to type name for Cloudinary folder path
+      const typeName = formData.type
+        ? availableTypes.find(t => t.id === formData.type)?.name
+        : undefined;
       const response = await apiRequest<{ images: { url: string }[] }>(
-        API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGES(formData.category),
+        API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGES(formData.category, typeName),
         {
           method: 'POST',
           body: uploadFormData,
@@ -188,7 +210,7 @@ const EditProductPage = () => {
     setIsLoading(true);
     try {
       // Resolve category slug to categoryId
-      const selectedCat = dynamicCategories.find(cat => cat.slug === (formData as any).category);
+      const selectedCat = dynamicCategories.find(cat => cat.slug === formData.category);
 
       // Process form data
       const productData: Partial<Product> = {
@@ -201,7 +223,8 @@ const EditProductPage = () => {
         stock: parseInt(formData.stock) || 0,
         sku: formData.sku || undefined,
         categoryId: selectedCat?.id,
-        category: (formData as any).category,
+        category: formData.category,
+        typeId: formData.type || undefined,
         sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
         colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [],
@@ -388,7 +411,7 @@ const EditProductPage = () => {
                     <select
                       id="category"
                       name="category"
-                      value={(formData as any).category}
+                      value={formData.category}
                       onChange={handleChange}
                       className={commonClasses.input}
                       disabled={categoriesLoading || dynamicCategories.length === 0}
@@ -404,6 +427,26 @@ const EditProductPage = () => {
                       )}
                       {!categoriesLoading && dynamicCategories.map(cat => (
                         <option key={cat.id} value={cat.slug}>{cat.name} Page</option>
+                      ))}
+                    </select>
+                  </FormField>
+
+                  <FormField
+                    label="Product Type"
+                    id="type"
+                    helperText={availableTypes.length === 0 ? 'Select a category to see available types' : `${availableTypes.length} type(s) available`}
+                  >
+                    <select
+                      id="type"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                      className={commonClasses.input}
+                      disabled={availableTypes.length === 0}
+                    >
+                      <option value="">Select a type...</option>
+                      {availableTypes.map((type: any) => (
+                        <option key={type.id} value={type.id}>{type.name}</option>
                       ))}
                     </select>
                   </FormField>

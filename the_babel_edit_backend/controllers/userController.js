@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../prismaClient.js';
 import { appendAuditLog } from './adminController.js';
 import { getSettingValue } from './settingsController.js';
+import { deleteFromCloudinary } from '../config/cloudinary.js';
 import { sendEmail } from '../utils/emailService.js';
 
 import { generateAccessToken, generateRefreshToken, setRefreshTokenCookie } from '../utils/authUtils.js';
@@ -481,6 +482,15 @@ export const updateAvatar = async (req, res) => {
     if (!userId) {
       console.error('UpdateAvatar: invalid token payload');
       return res.status(401).json({ message: 'Invalid token payload' });
+    }
+
+    // Delete old avatar from Cloudinary before saving new one
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    });
+    if (existingUser?.avatar) {
+      deleteFromCloudinary(existingUser.avatar).catch(() => {});
     }
 
     const updatedUser = await prisma.user.update({
