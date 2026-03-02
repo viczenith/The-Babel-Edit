@@ -357,6 +357,8 @@ const handleFailedPayment = async (paymentIntent) => {
         to: order.user.email,
         subject: 'Payment Failed — The Babel Edit',
         html: failedHtml
+      }).catch((err) => {
+        console.error(`❌ Payment failed email error for ${order.user.email}:`, err.message || err);
       });
     }
   } catch (error) {

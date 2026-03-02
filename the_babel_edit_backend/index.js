@@ -1,6 +1,7 @@
 import app from './app.js';
 import prisma from './prismaClient.js';
 import { once } from 'events';
+import { verifyEmailTransport } from './utils/emailService.js';
 
 // Host and starting port
 const START_PORT = Number(process.env.PORT || 5000);
@@ -48,6 +49,10 @@ const tryListen = async (startPort, host, maxAttempts = 10) => {
       console.log(`🚀 Server running on ${host}:${port}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Health check available at /api/health`);
+
+      // Verify email transport (non-blocking, just logs status)
+      verifyEmailTransport().catch(() => {});
+
       return server;
     } catch (err) {
       if (err && err.code === 'EADDRINUSE') {

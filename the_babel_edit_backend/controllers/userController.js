@@ -161,9 +161,12 @@ export const register = async (req, res) => {
         to: email,
         subject: 'Welcome to The Babel Edit! 🛍️',
         html: welcomeHtml
+      }).catch((emailErr) => {
+        console.error(`❌ Welcome email failed for ${email}:`, emailErr.message || emailErr);
       });
     } catch (emailError) {
       // Don't fail registration if welcome email fails
+      console.error(`❌ Welcome email error for ${email}:`, emailError.message || emailError);
     }
 
     res.status(201).json({
