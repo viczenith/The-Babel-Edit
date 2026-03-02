@@ -419,6 +419,88 @@ export const getProductById = async (req, res) => {
   }
 };
 
+// Get product by ID for admin (includes inactive products)
+export const getProductByIdAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        type: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        collection: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        },
+        reviews: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Parse JSON fields
+    const parseJsonField = (value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return []; }
+      }
+      return [];
+    };
+
+    const parsedImages = parseJsonField(product.images);
+    const parsedSizes = parseJsonField(product.sizes);
+    const parsedColors = parseJsonField(product.colors);
+    const parsedTags = parseJsonField(product.tags);
+
+    const avgRating = product.reviews.length > 0
+      ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
+      : 0;
+
+    res.json({
+      ...product,
+      images: parsedImages,
+      sizes: parsedSizes,
+      colors: parsedColors,
+      tags: parsedTags,
+      avgRating: Math.round(avgRating * 10) / 10,
+      reviewCount: product.reviews.length,
+    });
+
+  } catch (error) {
+    console.error('Get product by ID (admin) error:', error);
+    res.status(500).json({ message: 'Failed to fetch product' });
+  }
+};
+
 // Search suggestions (for autocomplete)
 export const getSearchSuggestions = async (req, res) => {
   try {
@@ -954,7 +1036,7 @@ export const updateProduct = async (req, res) => {
     // Delete old images from Cloudinary if being replaced
     if (oldProduct) {
       if (imageUrl !== undefined && oldProduct.imageUrl && oldProduct.imageUrl !== toRelativePath(imageUrl)) {
-        deleteFromCloudinary(oldProduct.imageUrl).catch(() => {});
+        deleteFromCloudinary(oldProduct.imageUrl).catch(e => console.warn('⚠️ Product image Cloudinary cleanup:', e.message));
       }
       if (images !== undefined && oldProduct.images) {
         const oldImages = Array.isArray(oldProduct.images)
@@ -963,7 +1045,7 @@ export const updateProduct = async (req, res) => {
         const newImages = Array.isArray(images) ? images.map(img => typeof img === 'string' ? toRelativePath(img) : img) : [];
         const removedImages = oldImages.filter(old => !newImages.includes(old));
         if (removedImages.length > 0) {
-          deleteMultipleFromCloudinary(removedImages).catch(() => {});
+          deleteMultipleFromCloudinary(removedImages).catch(e => console.warn('⚠️ Product images Cloudinary cleanup:', e.message));
         }
       }
     }
@@ -1240,7 +1322,7 @@ export const hardDeleteProduct = async (req, res) => {
       // Deduplicate
       const uniqueUrls = [...new Set(allImageUrls)];
       if (uniqueUrls.length > 0) {
-        deleteMultipleFromCloudinary(uniqueUrls).catch(() => {});
+        deleteMultipleFromCloudinary(uniqueUrls).catch(e => console.warn('⚠️ Product hard-delete Cloudinary cleanup:', e.message));
       }
     }
 

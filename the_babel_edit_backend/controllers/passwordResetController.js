@@ -113,12 +113,16 @@ export const requestPasswordReset = async (req, res) => {
 
     // Send email
     console.log('[PASSWORD_RESET] About to call sendEmail for:', user.email);
-    await sendEmail({
+    const sent = await sendEmail({
       to: user.email,
       subject: 'Password Reset - The Babel Edit',
       html: emailHtml
     });
-    console.log('[PASSWORD_RESET] sendEmail call completed');
+    console.log('[PASSWORD_RESET] sendEmail call completed, sent:', sent);
+
+    if (!sent) {
+      return res.status(500).json({ message: 'Failed to send reset email. Please try again later.' });
+    }
 
     await appendAuditLog({
       action: 'request_password_reset', resource: 'User', resourceId: user.id,

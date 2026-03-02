@@ -92,7 +92,7 @@ const EditProductPage = () => {
     setIsFetching(true);
     try {
       const response = await apiRequest<Product>(
-        API_ENDPOINTS.PRODUCTS.BY_ID(productId),
+        API_ENDPOINTS.PRODUCTS.ADMIN.BY_ID(productId),
         { requireAuth: true }
       );
 

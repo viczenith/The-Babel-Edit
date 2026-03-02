@@ -28,30 +28,31 @@ export const updateHeroSlides = async (req, res) => {
     const oldSlides = await prisma.heroSlide.findMany({ select: { imageUrl: true } });
     const oldImageUrls = oldSlides.map(s => s.imageUrl).filter(Boolean);
 
-    // Clear existing slides and insert new ones
-    await prisma.heroSlide.deleteMany({});
+    // Clear existing slides and insert new ones in a transaction
+    const newSlides = await prisma.$transaction(async (tx) => {
+      await tx.heroSlide.deleteMany({});
 
-    const newSlides = await Promise.all(
-      slides.map((slide, index) => {
-        // Normalize possible image field names from the frontend
-        const imageUrl = slide.imageUrl || slide.image || slide.src || '';
+      return Promise.all(
+        slides.map((slide, index) => {
+          const imageUrl = slide.imageUrl || slide.image || slide.src || '';
 
-        return prisma.heroSlide.create({
-          data: {
-            imageUrl,
-            alt: slide.alt || "",
-            description: slide.description || "",
-            position: index,
-          },
-        });
-      })
-    );
+          return tx.heroSlide.create({
+            data: {
+              imageUrl,
+              alt: slide.alt || "",
+              description: slide.description || "",
+              position: index,
+            },
+          });
+        })
+      );
+    });
 
     // Delete removed hero slide images from Cloudinary
     const newImageUrls = newSlides.map(s => s.imageUrl).filter(Boolean);
     const removedUrls = oldImageUrls.filter(url => !newImageUrls.includes(url));
     if (removedUrls.length > 0) {
-      deleteMultipleFromCloudinary(removedUrls).catch(() => {});
+      deleteMultipleFromCloudinary(removedUrls).catch(e => console.warn('⚠️ Hero slide Cloudinary cleanup:', e.message));
     }
 
     // Audit: hero slides updated
@@ -97,27 +98,29 @@ export const updateHighlightCards = async (req, res) => {
     const oldCards = await prisma.highlightCard.findMany({ select: { imageUrl: true } });
     const oldImageUrls = oldCards.map(c => c.imageUrl).filter(Boolean);
 
-    // Clear existing cards and insert new ones
-    await prisma.highlightCard.deleteMany({});
+    // Clear existing cards and insert new ones in a transaction
+    const newCards = await prisma.$transaction(async (tx) => {
+      await tx.highlightCard.deleteMany({});
 
-    const newCards = await Promise.all(
-      cards.map((card, index) =>
-        prisma.highlightCard.create({
-          data: {
-            title: card.title,
-            description: card.description || "",
-            imageUrl: card.imageUrl || null,
-            position: index,
-          },
-        })
-      )
-    );
+      return Promise.all(
+        cards.map((card, index) =>
+          tx.highlightCard.create({
+            data: {
+              title: card.title,
+              description: card.description || "",
+              imageUrl: card.imageUrl || null,
+              position: index,
+            },
+          })
+        )
+      );
+    });
 
     // Delete removed highlight card images from Cloudinary
     const newImageUrls = newCards.map(c => c.imageUrl).filter(Boolean);
     const removedUrls = oldImageUrls.filter(url => !newImageUrls.includes(url));
     if (removedUrls.length > 0) {
-      deleteMultipleFromCloudinary(removedUrls).catch(() => {});
+      deleteMultipleFromCloudinary(removedUrls).catch(e => console.warn('⚠️ Highlight card Cloudinary cleanup:', e.message));
     }
 
     // Audit: highlight cards updated
@@ -210,7 +213,7 @@ export const updateSummerBanner = async (req, res) => {
     } else {
       // Delete old banner image from Cloudinary if being replaced
       if (summerBannerBackgroundImage !== undefined && config.summerBannerBackgroundImage && config.summerBannerBackgroundImage !== summerBannerBackgroundImage) {
-        deleteFromCloudinary(config.summerBannerBackgroundImage).catch(() => {});
+        deleteFromCloudinary(config.summerBannerBackgroundImage).catch(e => console.warn('⚠️ Summer banner Cloudinary cleanup:', e.message));
       }
 
       config = await prisma.dashboardConfig.update({
@@ -382,10 +385,10 @@ export const updateLandingPage = async (req, res) => {
     } else {
       // Delete old landing page images/videos from Cloudinary if being replaced
       if (landingPageBackgroundImage !== undefined && config.landingPageBackgroundImage && config.landingPageBackgroundImage !== landingPageBackgroundImage) {
-        deleteFromCloudinary(config.landingPageBackgroundImage).catch(() => {});
+        deleteFromCloudinary(config.landingPageBackgroundImage).catch(e => console.warn('⚠️ Landing page image Cloudinary cleanup:', e.message));
       }
       if (landingPageVideoUrl !== undefined && config.landingPageVideoUrl && config.landingPageVideoUrl !== landingPageVideoUrl) {
-        deleteFromCloudinary(config.landingPageVideoUrl).catch(() => {});
+        deleteFromCloudinary(config.landingPageVideoUrl).catch(e => console.warn('⚠️ Landing page video Cloudinary cleanup:', e.message));
       }
 
       config = await prisma.dashboardConfig.update({

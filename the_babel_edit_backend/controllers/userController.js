@@ -493,7 +493,7 @@ export const updateAvatar = async (req, res) => {
       select: { avatar: true },
     });
     if (existingUser?.avatar) {
-      deleteFromCloudinary(existingUser.avatar).catch(() => {});
+      deleteFromCloudinary(existingUser.avatar).catch(e => console.warn('⚠️ Avatar Cloudinary cleanup:', e.message));
     }
 
     const updatedUser = await prisma.user.update({
