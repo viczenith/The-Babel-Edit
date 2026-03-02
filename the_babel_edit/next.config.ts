@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
-      // Allow Render backend images in production
+      
       {
         protocol: "https",
         hostname: "the-babel-edit-backend-ov3y.onrender.com",
@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "www.g.com",
       },
-      // Allow local backend image host used in development
+      
       {
         protocol: "http",
         hostname: "localhost",

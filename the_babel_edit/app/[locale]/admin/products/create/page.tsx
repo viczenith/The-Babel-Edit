@@ -68,7 +68,7 @@ const CreateProductPage = () => {
         formDataToSend.append('image', file);
 
         const response = await apiRequest<{ imageUrl: string }>(
-          API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE,
+          API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE(formData.category, formData.type),
           {
             method: 'POST',
             body: formDataToSend,

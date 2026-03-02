@@ -194,13 +194,16 @@ const DashboardManager = () => {
   };
 
   // ==== IMAGE UPLOAD HELPERS ====
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (file: File, section?: string): Promise<string | null> => {
     try {
       const formData = new FormData();
       formData.append('image', file);
+
+      // Use the dedicated dashboard upload endpoint with ?folder=<section>
+      const endpoint = API_ENDPOINTS.DASHBOARD.UPLOAD_IMAGE(section);
       
       const response = await apiRequest<{ imageUrl: string }>(
-        API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE,
+        endpoint,
         {
           method: 'POST',
           body: formData,
@@ -304,7 +307,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setHeroUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'hero-slides');
     setHeroUploading(false);
 
     if (imageUrl) {
@@ -332,7 +335,7 @@ const DashboardManager = () => {
     }
 
     setHeroUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'hero-slides');
     setHeroUploading(false);
 
     if (imageUrl) {
@@ -508,7 +511,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setCardUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'highlights');
     setCardUploading(false);
 
     if (imageUrl) {
@@ -536,7 +539,7 @@ const DashboardManager = () => {
     }
 
     setCardUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'highlights');
     setCardUploading(false);
 
     if (imageUrl) {
@@ -722,7 +725,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setBannerUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'banners');
     setBannerUploading(false);
 
     if (imageUrl) {
@@ -743,7 +746,7 @@ const DashboardManager = () => {
     }
 
     setBannerUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'banners');
     setBannerUploading(false);
 
     if (imageUrl) {
@@ -860,7 +863,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setLandingPageUploading(true);
-    const videoUrl = await uploadImage(file);
+    const videoUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (videoUrl) {
@@ -881,7 +884,7 @@ const DashboardManager = () => {
     }
 
     setLandingPageUploading(true);
-    const videoUrl = await uploadImage(file);
+    const videoUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (videoUrl) {
@@ -895,7 +898,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setLandingPageUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (imageUrl) {
@@ -916,7 +919,7 @@ const DashboardManager = () => {
     }
 
     setLandingPageUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (imageUrl) {
@@ -931,7 +934,7 @@ const DashboardManager = () => {
     if (!file) return;
 
     setLandingPageUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (imageUrl) {
@@ -952,7 +955,7 @@ const DashboardManager = () => {
     }
 
     setLandingPageUploading(true);
-    const imageUrl = await uploadImage(file);
+    const imageUrl = await uploadImage(file, 'landing-page');
     setLandingPageUploading(false);
 
     if (imageUrl) {

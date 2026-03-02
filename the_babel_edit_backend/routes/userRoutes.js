@@ -18,7 +18,7 @@ import {
   getUserDetail
 } from '../controllers/userController.js';
 import { authenticateToken, checkRole } from '../middleware/auth.js';
-import { uploadSingle } from '../config/cloudinary.js';
+import { uploadAvatar } from '../config/cloudinary.js';
 import { generateAccessToken, generateRefreshToken, setRefreshTokenCookie } from '../utils/authUtils.js';
 
 const router = express.Router();
@@ -35,7 +35,7 @@ router.post('/logout', logout);
 router.get('/verify', authenticateToken, verify);
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile', authenticateToken, updateProfile);
-router.put('/profile/avatar', authenticateToken, uploadSingle, updateAvatar);
+router.put('/profile/avatar', authenticateToken, uploadAvatar, updateAvatar);
 
 // Google OAuth routes
 router.get('/auth/google',

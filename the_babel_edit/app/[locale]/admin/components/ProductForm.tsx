@@ -183,15 +183,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, preselecte
           continue;
         }
 
-        const formData = new FormData();
-        formData.append('image', file);
+        const uploadFormData = new FormData();
+        uploadFormData.append('image', file);
 
         try {
           const response = await apiRequest<{ imageUrl: string }>(
-            API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE,
+            API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGE(formData.category, formData.type),
             {
               method: 'POST',
-              body: formData,
+              body: uploadFormData,
               requireAuth: true,
               isFormData: true
             }

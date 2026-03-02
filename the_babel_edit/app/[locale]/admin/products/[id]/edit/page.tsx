@@ -114,16 +114,16 @@ const EditProductPage = () => {
     if (!files) return;
 
     try {
-      const formData = new FormData();
+      const uploadFormData = new FormData();
       for (const file of Array.from(files)) {
-        formData.append('images', file);
+        uploadFormData.append('images', file);
       }
 
       const response = await apiRequest<{ images: { url: string }[] }>(
-        API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGES, 
+        API_ENDPOINTS.PRODUCTS.ADMIN.UPLOAD_IMAGES(formData.category),
         {
           method: 'POST',
-          body: formData,
+          body: uploadFormData,
           isFormData: true,
           requireAuth: true,
         }

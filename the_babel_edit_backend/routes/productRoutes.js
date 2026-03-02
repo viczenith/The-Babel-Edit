@@ -22,7 +22,7 @@ import {
   getFeaturedProducts
 } from '../controllers/productController.js';
 import { authenticateToken, checkRole } from '../middleware/auth.js';
-import { uploadSingle, uploadMultiple, handleUploadError } from '../config/cloudinary.js';
+import { uploadProductImage, uploadProductImages, handleUploadError } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -54,7 +54,8 @@ router.post('/admin/products/upload-image',
   authenticateToken, 
   checkRole(['ADMIN', 'SUPER_ADMIN']), 
   (req, res, next) => {
-    uploadSingle(req, res, (err) => {
+    // Dynamic folder is resolved from ?category=...&type=... query params
+    uploadProductImage(req, res, (err) => {
       if (err) {
         console.error('Multer upload error:', err);
         return res.status(400).json({ message: err.message || 'Upload failed', error: err.message });
@@ -97,7 +98,8 @@ router.post('/admin/products/upload-images',
   authenticateToken, 
   checkRole(['ADMIN', 'SUPER_ADMIN']), 
   (req, res, next) => {
-    uploadMultiple(req, res, (err) => {
+    // Dynamic folder is resolved from ?category=...&type=... query params
+    uploadProductImages(req, res, (err) => {
       if (err) {
         console.error('Multer upload error:', err);
         return res.status(400).json({ message: err.message || 'Upload failed', error: err.message });

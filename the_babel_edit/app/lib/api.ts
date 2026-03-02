@@ -349,8 +349,20 @@ export const API_ENDPOINTS = {
       CREATE: '/admin/products',
       UPDATE: (id: string) => `/admin/products/${id}`,
       DELETE: (id: string) => `/admin/products/${id}`,
-      UPLOAD_IMAGE: '/admin/products/upload-image',
-      UPLOAD_IMAGES: '/admin/products/upload-images',
+      UPLOAD_IMAGE: (category?: string, type?: string) => {
+        const params = new URLSearchParams();
+        if (category) params.set('category', category);
+        if (type) params.set('type', type);
+        const qs = params.toString();
+        return `/admin/products/upload-image${qs ? `?${qs}` : ''}`;
+      },
+      UPLOAD_IMAGES: (category?: string, type?: string) => {
+        const params = new URLSearchParams();
+        if (category) params.set('category', category);
+        if (type) params.set('type', type);
+        const qs = params.toString();
+        return `/admin/products/upload-images${qs ? `?${qs}` : ''}`;
+      },
     },
   },
   COLLECTIONS: {
@@ -459,6 +471,12 @@ export const API_ENDPOINTS = {
     GET_CONFIG: '/dashboard/config',
     UPDATE_CONFIG: '/admin/dashboard/config',
     TOGGLE_VISIBILITY: '/admin/dashboard/toggle-visibility',
+    UPLOAD_IMAGE: (folder?: string) => {
+      const params = new URLSearchParams();
+      if (folder) params.set('folder', folder);
+      const qs = params.toString();
+      return `/admin/dashboard/upload-image${qs ? `?${qs}` : ''}`;
+    },
   },
   SETTINGS: {
     LIST: '/admin/settings',

@@ -52,26 +52,95 @@ const localStorage = multer.diskStorage({
   }
 });
 
-const storage = isConfigured ? new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'ecommerce',
-    allowed_formats: ['jpeg', 'png', 'jpg'],
-  },
-}) : localStorage; // Fallback to local disk storage if not configured
+// ── Helpers ────────────────────────────────────────────────────
+/** Turn any string into a URL-safe slug for folder names */
+const slugify = (text) =>
+  text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, '-and-')
+    .replace(/[\s\W-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
-export const upload = multer({ 
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-});
+// ── Factory: static-folder uploader ───────────────────────────
+const createStaticUploader = (folder = 'ecommerce/general') => {
+  const storage = isConfigured
+    ? new CloudinaryStorage({
+        cloudinary,
+        params: {
+          folder,
+          allowed_formats: ['jpeg', 'png', 'jpg'],
+        },
+      })
+    : localStorage;
 
-// Middleware to handle single image upload
-export const uploadSingle = upload.single('image');
+  return multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
+};
 
-// Middleware to handle multiple images upload (up to 5 images)
-export const uploadMultiple = upload.array('images', 5);
+// ── Factory: dynamic-folder uploader ──────────────────────────
+// For products:  reads `req.query.category` and `req.query.type`
+//   e.g. POST /upload-image?category=women&type=dresses
+//        → Cloudinary folder: ecommerce/products/women/dresses
+// For dashboard: reads `req.query.folder`
+//   e.g. POST /upload-image?folder=hero-slides
+//        → Cloudinary folder: ecommerce/dashboard/hero-slides
+const createDynamicUploader = (baseFolder = 'ecommerce/products') => {
+  const storage = isConfigured
+    ? new CloudinaryStorage({
+        cloudinary,
+        params: (req, _file) => {
+          // Build sub-path from category + type (products) or folder (dashboard)
+          const parts = [baseFolder];
+          if (req.query.category) parts.push(slugify(req.query.category));
+          if (req.query.type)     parts.push(slugify(req.query.type));
+          if (req.query.folder)   parts.push(slugify(req.query.folder));
+          const folder = parts.join('/');
+
+          return {
+            folder,
+            allowed_formats: ['jpeg', 'png', 'jpg'],
+          };
+        },
+      })
+    : localStorage;
+
+  return multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
+};
+
+// ── Folder-specific uploaders ──────────────────────────────────
+// Products get DYNAMIC sub-folders (ecommerce/products/<product-slug>/)
+const productUpload   = createDynamicUploader('ecommerce/products');
+
+// Dashboard gets DYNAMIC sub-folders (ecommerce/dashboard/<section>/)
+//   ?folder=hero-slides | ?folder=highlights | ?folder=banners
+const dashboardUpload = createDynamicUploader('ecommerce/dashboard');
+
+// Avatars & general use a single static folder each
+const avatarUpload    = createStaticUploader('ecommerce/avatars');
+const generalUpload   = createStaticUploader('ecommerce/general');
+
+// ── Product image middleware (dynamic per-product folders) ─────
+export const uploadProductImage  = productUpload.single('image');
+export const uploadProductImages = productUpload.array('images', 5);
+
+// ── Avatar middleware ──────────────────────────────────────────
+export const uploadAvatar = avatarUpload.single('image');
+
+// ── Dashboard middleware (dynamic per-section folders) ─────────
+export const uploadDashboardImage  = dashboardUpload.single('image');
+export const uploadDashboardImages = dashboardUpload.array('images', 5);
+
+// ── Legacy / generic (kept for backward compatibility) ────────
+export const upload = generalUpload;
+export const uploadSingle   = generalUpload.single('image');
+export const uploadMultiple = generalUpload.array('images', 5);
 
 // Error handling middleware for multer errors
 export const handleUploadError = (err, req, res, next) => {
