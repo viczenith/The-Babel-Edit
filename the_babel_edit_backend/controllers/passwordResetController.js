@@ -5,6 +5,9 @@ import prisma from '../prismaClient.js';
 import { sendEmail } from '../utils/emailService.js';
 import { appendAuditLog } from './adminController.js';
 
+// Use the same secret as the rest of the app, with JWT_SECRET as fallback
+const getJwtSecret = () => process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET;
+
 // Generate password reset token
 const generateResetToken = () => {
   return crypto.randomBytes(32).toString('hex');
@@ -53,7 +56,7 @@ export const requestPasswordReset = async (req, res) => {
         resetToken,
         purpose: 'password-reset'
       },
-      process.env.JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '1h' }
     );
 
@@ -148,7 +151,7 @@ export const verifyResetToken = async (req, res) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, getJwtSecret());
       
       if (decoded.purpose !== 'password-reset') {
         return res.status(400).json({ message: 'Invalid token purpose' });
@@ -207,7 +210,7 @@ export const resetPassword = async (req, res) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, getJwtSecret());
       
       if (decoded.purpose !== 'password-reset') {
         return res.status(400).json({ message: 'Invalid token purpose' });

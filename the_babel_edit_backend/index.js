@@ -51,7 +51,7 @@ const tryListen = async (startPort, host, maxAttempts = 10) => {
       console.log(`🔗 Health check available at /api/health`);
 
       // Verify email transport (non-blocking, just logs status)
-      verifyEmailTransport().catch(() => {});
+      verifyEmailTransport().catch(e => console.error('❌ Email transport verification error:', e.message));
 
       return server;
     } catch (err) {
