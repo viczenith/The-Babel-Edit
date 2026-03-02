@@ -1244,8 +1244,13 @@ export const hardDeleteProduct = async (req, res) => {
       }
     }
 
-    await prisma.product.delete({
-      where: { id },
+    // Delete related records in a transaction to avoid FK constraint violations
+    await prisma.$transaction(async (tx) => {
+      await tx.cartItem.deleteMany({ where: { productId: id } });
+      await tx.wishlistItem.deleteMany({ where: { productId: id } });
+      await tx.review.deleteMany({ where: { productId: id } });
+      await tx.orderItem.deleteMany({ where: { productId: id } });
+      await tx.product.delete({ where: { id } });
     });
 
     // Audit log: product permanently deleted
