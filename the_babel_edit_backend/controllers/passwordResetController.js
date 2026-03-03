@@ -72,47 +72,48 @@ export const requestPasswordReset = async (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Password Reset - The Babel Edit</title>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
-        <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+        <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f3e8e7;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
-            <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;">
               <!-- Header -->
-              <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
-                <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Account Security</p>
-                <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
-                <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
+              <div style="border-top: 4px solid #ef4444; padding: 36px 32px; text-align: center;">
+                <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 8px;">Account Security</p>
+                <h1 style="color: #0f172a; font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.025em; font-family: 'Playfair Display', Georgia, serif;">The Babel Edit</h1>
+                <div style="width: 40px; height: 2px; background: #ef4444; margin: 14px auto 0;"></div>
               </div>
 
               <!-- Body -->
               <div style="padding: 40px 32px;">
                 <div style="text-align: center; margin-bottom: 24px;">
-                  <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: #fef3cd; line-height: 56px; font-size: 24px;">🔐</div>
+                  <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: #fef2f2; line-height: 56px; font-size: 24px;">🔐</div>
                 </div>
                 
-                <h2 style="font-size: 22px; font-weight: 400; color: #1a1a1a; margin: 0 0 20px; text-align: center; font-family: 'Georgia', serif;">Password Reset Request</h2>
+                <h2 style="font-size: 22px; font-weight: 600; color: #0f172a; margin: 0 0 20px; text-align: center; font-family: 'Playfair Display', Georgia, serif;">Password Reset Request</h2>
                 
-                <p style="color: #555; font-size: 15px; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">Hello ${user.firstName || 'there'},</p>
+                <p style="color: #374151; font-size: 15px; margin: 0 0 16px;">Hello ${user.firstName || 'there'},</p>
                 
-                <p style="color: #555; font-size: 15px; margin: 0 0 28px; font-family: 'Helvetica Neue', Arial, sans-serif;">We received a request to reset the password for your account. Click the button below to create a new password:</p>
+                <p style="color: #64748b; font-size: 15px; margin: 0 0 28px;">We received a request to reset the password for your account. Click the button below to create a new password:</p>
                 
                 <div style="text-align: center; margin: 32px 0;">
-                  <a href="${resetUrl}" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Reset Password</a>
+                  <a href="${resetUrl}" style="display: inline-block; padding: 14px 44px; background-color: #ef4444; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; border-radius: 9999px;">Reset Password</a>
                 </div>
                 
-                <p style="color: #888; font-size: 12px; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Or copy and paste this link into your browser:</p>
-                <div style="word-break: break-all; color: #c9a96e; font-size: 12px; margin: 0 0 28px; background: #fdfbf7; padding: 12px 16px; border: 1px solid #e8e0d4; font-family: monospace;">${resetUrl}</div>
+                <p style="color: #64748b; font-size: 12px; margin: 0 0 8px;">Or copy and paste this link into your browser:</p>
+                <div style="word-break: break-all; color: #7f1d1d; font-size: 12px; margin: 0 0 28px; background: #fef7f7; padding: 12px 16px; border: 1px solid #f1eded; border-radius: 8px; font-family: monospace;">${resetUrl}</div>
                 
-                <div style="border-top: 1px solid #e8e0d4; padding-top: 20px; margin-top: 8px;">
-                  <p style="color: #888; font-size: 13px; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">⏱ This link expires in <strong style="color: #555;">1 hour</strong> for your security.</p>
-                  <p style="color: #888; font-size: 13px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Didn't request this? You can safely ignore this email — your password will remain unchanged.</p>
+                <div style="border-top: 1px solid #e8d9d9; padding-top: 20px; margin-top: 8px;">
+                  <p style="color: #64748b; font-size: 13px; margin: 0 0 8px;">⏱ This link expires in <strong style="color: #0f172a;">1 hour</strong> for your security.</p>
+                  <p style="color: #64748b; font-size: 13px; margin: 0;">Didn't request this? You can safely ignore this email — your password will remain unchanged.</p>
                 </div>
               </div>
 
               <!-- Footer -->
-              <div style="background: #1a1a1a; padding: 32px; text-align: center;">
-                <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
-                <div style="width: 30px; height: 1px; background: #333; margin: 0 auto 16px;"></div>
-                <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+              <div style="border-top: 1px solid #e8d9d9; padding: 28px 32px; text-align: center;">
+                <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px;">The Babel Edit</p>
+                <div style="width: 30px; height: 1px; background: #e8d9d9; margin: 0 auto 12px;"></div>
+                <p style="color: #64748b; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
               </div>
             </div>
           </div>
@@ -263,44 +264,45 @@ export const resetPassword = async (req, res) => {
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Password Changed - The Babel Edit</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
           </head>
-          <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+          <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f3e8e7;">
             <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
-              <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;">
                 <!-- Header -->
-                <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
-                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Account Security</p>
-                  <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
-                  <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
+                <div style="border-top: 4px solid #ef4444; padding: 36px 32px; text-align: center;">
+                  <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 8px;">Account Security</p>
+                  <h1 style="color: #0f172a; font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.025em; font-family: 'Playfair Display', Georgia, serif;">The Babel Edit</h1>
+                  <div style="width: 40px; height: 2px; background: #ef4444; margin: 14px auto 0;"></div>
                 </div>
 
                 <!-- Body -->
                 <div style="padding: 40px 32px; text-align: center;">
                   <div style="margin-bottom: 24px;">
-                    <div style="display: inline-block; width: 64px; height: 64px; border-radius: 50%; background: #e8f5e9; line-height: 64px; font-size: 28px;">✓</div>
+                    <div style="display: inline-block; width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; line-height: 64px; font-size: 28px;">✓</div>
                   </div>
                   
-                  <h2 style="font-size: 22px; font-weight: 400; color: #1a1a1a; margin: 0 0 20px; font-family: 'Georgia', serif;">Password Updated Successfully</h2>
+                  <h2 style="font-size: 22px; font-weight: 600; color: #0f172a; margin: 0 0 20px; font-family: 'Playfair Display', Georgia, serif;">Password Updated Successfully</h2>
                   
-                  <p style="color: #555; font-size: 15px; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif; text-align: left;">Hello ${user.firstName || 'there'},</p>
+                  <p style="color: #374151; font-size: 15px; margin: 0 0 16px; text-align: left;">Hello ${user.firstName || 'there'},</p>
                   
-                  <p style="color: #555; font-size: 15px; margin: 0 0 24px; font-family: 'Helvetica Neue', Arial, sans-serif; text-align: left;">Your password has been successfully changed. You can now sign in with your new credentials.</p>
+                  <p style="color: #64748b; font-size: 15px; margin: 0 0 24px; text-align: left;">Your password has been successfully changed. You can now sign in with your new credentials.</p>
                   
-                  <div style="background: #fdf6f6; border-left: 3px solid #c0392b; padding: 16px 20px; margin: 24px 0; text-align: left;">
-                    <p style="color: #c0392b; font-size: 13px; font-weight: 600; margin: 0 0 4px; font-family: 'Helvetica Neue', Arial, sans-serif;">⚠ Didn't make this change?</p>
-                    <p style="color: #777; font-size: 13px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Contact us immediately at <a href="mailto:${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}" style="color: #c9a96e; text-decoration: none;">${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}</a> to secure your account.</p>
+                  <div style="background: #fef2f2; border-left: 3px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 24px 0; text-align: left;">
+                    <p style="color: #dc2626; font-size: 13px; font-weight: 600; margin: 0 0 4px;">⚠ Didn't make this change?</p>
+                    <p style="color: #64748b; font-size: 13px; margin: 0;">Contact us immediately at <a href="mailto:${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}" style="color: #ef4444; text-decoration: none;">${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}</a> to secure your account.</p>
                   </div>
 
                   <div style="text-align: center; margin-top: 28px;">
-                    <a href="${frontendUrl}/en/auth/login" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Sign In</a>
+                    <a href="${frontendUrl}/en/auth/login" style="display: inline-block; padding: 14px 44px; background-color: #ef4444; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; border-radius: 9999px;">Sign In</a>
                   </div>
                 </div>
 
                 <!-- Footer -->
-                <div style="background: #1a1a1a; padding: 32px; text-align: center;">
-                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
-                  <div style="width: 30px; height: 1px; background: #333; margin: 0 auto 16px;"></div>
-                  <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+                <div style="border-top: 1px solid #e8d9d9; padding: 28px 32px; text-align: center;">
+                  <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px;">The Babel Edit</p>
+                  <div style="width: 30px; height: 1px; background: #e8d9d9; margin: 0 auto 12px;"></div>
+                  <p style="color: #64748b; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
                 </div>
               </div>
             </div>

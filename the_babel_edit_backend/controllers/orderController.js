@@ -826,10 +826,10 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
       statusMessage = 'Your order has been delivered! We hope you enjoy your purchase. If you have any issues, please don\'t hesitate to contact us.';
       statusColor = '#16a34a'; // green
       reviewSection = `
-        <div style="margin: 32px 0 0; padding: 28px; background: #fdfbf7; border: 1px solid #e8e0d4; text-align: center;">
-          <p style="font-size: 18px; font-weight: 400; color: #1a1a1a; margin: 0 0 8px; font-family: 'Georgia', serif;">How was your experience?</p>
-          <p style="font-size: 13px; color: #888; margin: 0 0 20px; font-family: 'Helvetica Neue', Arial, sans-serif;">Your feedback helps other shoppers and helps us improve.</p>
-          <a href="${frontendUrl}/en/orders" style="display: inline-block; padding: 14px 36px; background-color: #c9a96e; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Leave a Review</a>
+        <div style="margin: 32px 0 0; padding: 28px; background: #fef7f7; border: 1px solid #f1eded; border-radius: 8px; text-align: center;">
+          <p style="font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 8px; font-family: 'Playfair Display', Georgia, serif;">How was your experience?</p>
+          <p style="font-size: 13px; color: #64748b; margin: 0 0 20px;">Your feedback helps other shoppers and helps us improve.</p>
+          <a href="${frontendUrl}/en/orders" style="display: inline-block; padding: 12px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; border-radius: 9999px;">Leave a Review</a>
         </div>
       `;
       break;
@@ -854,55 +854,56 @@ const sendStatusChangeEmail = async (order, newStatus, trackingNumber, estimated
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Status Update</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     </head>
-    <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+    <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f3e8e7;">
       <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
-        <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;">
           <!-- Header -->
-          <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
-            <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Order Update</p>
-            <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
-            <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
+          <div style="border-top: 4px solid #ef4444; padding: 36px 32px; text-align: center;">
+            <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 8px;">Order Update</p>
+            <h1 style="color: #0f172a; font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.025em; font-family: 'Playfair Display', Georgia, serif;">The Babel Edit</h1>
+            <div style="width: 40px; height: 2px; background: #ef4444; margin: 14px auto 0;"></div>
           </div>
 
           <div style="padding: 40px 32px;">
-            <p style="color: #555; font-size: 15px; margin: 0 0 24px; font-family: 'Helvetica Neue', Arial, sans-serif;">Hi ${customerName},</p>
+            <p style="color: #374151; font-size: 15px; margin: 0 0 24px;">Hi ${customerName},</p>
             
             <!-- Status Badge -->
-            <div style="margin: 0 0 28px; padding: 20px 24px; border-left: 4px solid ${statusColor}; background-color: #fdfbf7;">
-              <p style="margin: 0 0 4px; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">Order Status</p>
-              <p style="margin: 0; font-size: 22px; font-weight: 400; color: ${statusColor}; font-family: 'Georgia', serif;">${newStatus}</p>
+            <div style="margin: 0 0 28px; padding: 20px 24px; border-left: 4px solid ${statusColor}; background-color: #fef7f7; border-radius: 0 8px 8px 0;">
+              <p style="margin: 0 0 4px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Order Status</p>
+              <p style="margin: 0; font-size: 22px; font-weight: 600; color: ${statusColor}; font-family: 'Playfair Display', Georgia, serif;">${newStatus}</p>
             </div>
             
-            <p style="line-height: 1.7; margin: 0 0 20px; color: #555; font-size: 15px; font-family: 'Helvetica Neue', Arial, sans-serif;">${statusMessage}</p>
+            <p style="line-height: 1.7; margin: 0 0 20px; color: #64748b; font-size: 15px;">${statusMessage}</p>
             
             <!-- Order Details -->
-            <div style="border-top: 1px solid #e8e0d4; border-bottom: 1px solid #e8e0d4; padding: 20px 0; margin: 24px 0;">
+            <div style="border-top: 1px solid #e8d9d9; border-bottom: 1px solid #e8d9d9; padding: 20px 0; margin: 24px 0;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="padding: 6px 0; font-family: 'Helvetica Neue', Arial, sans-serif;">
-                    <span style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Order Number</span><br>
-                    <span style="font-size: 15px; color: #1a1a1a; font-weight: 600;">${order.orderNumber}</span>
+                  <td style="padding: 6px 0;">
+                    <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Order Number</span><br>
+                    <span style="font-size: 15px; color: #0f172a; font-weight: 600;">${order.orderNumber}</span>
                   </td>
-                  <td style="padding: 6px 0; text-align: right; font-family: 'Helvetica Neue', Arial, sans-serif;">
-                    <span style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Total</span><br>
-                    <span style="font-size: 15px; color: #1a1a1a; font-weight: 600;">${formatCurrency(order.total)}</span>
+                  <td style="padding: 6px 0; text-align: right;">
+                    <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Total</span><br>
+                    <span style="font-size: 15px; color: #0f172a; font-weight: 600;">${formatCurrency(order.total)}</span>
                   </td>
                 </tr>
               </table>
             </div>
 
             <div style="text-align: center; margin: 32px 0 8px;">
-              <a href="${orderDetailsUrl}" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">View Your Order</a>
+              <a href="${orderDetailsUrl}" style="display: inline-block; padding: 14px 44px; background-color: #ef4444; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; border-radius: 9999px;">View Your Order</a>
             </div>
             ${reviewSection}
           </div>
 
           <!-- Footer -->
-          <div style="background: #1a1a1a; padding: 32px; text-align: center;">
-            <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
-            <div style="width: 30px; height: 1px; background: #333; margin: 0 auto 16px;"></div>
-            <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+          <div style="border-top: 1px solid #e8d9d9; padding: 28px 32px; text-align: center;">
+            <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px;">The Babel Edit</p>
+            <div style="width: 30px; height: 1px; background: #e8d9d9; margin: 0 auto 12px;"></div>
+            <p style="color: #64748b; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -933,53 +934,54 @@ const sendTrackingUpdateEmail = async (order, trackingNumber) => {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Tracking Number Updated</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     </head>
-    <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+    <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f3e8e7;">
       <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
-        <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+        <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;">
           <!-- Header -->
-          <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
-            <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Shipping Update</p>
-            <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
-            <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
+          <div style="border-top: 4px solid #ef4444; padding: 36px 32px; text-align: center;">
+            <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 8px;">Shipping Update</p>
+            <h1 style="color: #0f172a; font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.025em; font-family: 'Playfair Display', Georgia, serif;">The Babel Edit</h1>
+            <div style="width: 40px; height: 2px; background: #ef4444; margin: 14px auto 0;"></div>
           </div>
 
           <div style="padding: 40px 32px;">
-            <p style="color: #555; font-size: 15px; margin: 0 0 20px; font-family: 'Helvetica Neue', Arial, sans-serif;">Hi ${customerName},</p>
-            <p style="color: #555; font-size: 15px; margin: 0 0 28px; font-family: 'Helvetica Neue', Arial, sans-serif;">Your tracking information has been updated for order <strong>#${order.orderNumber}</strong>.</p>
+            <p style="color: #374151; font-size: 15px; margin: 0 0 20px;">Hi ${customerName},</p>
+            <p style="color: #64748b; font-size: 15px; margin: 0 0 28px;">Your tracking information has been updated for order <strong style="color: #0f172a;">#${order.orderNumber}</strong>.</p>
             
             <!-- Tracking Box -->
-            <div style="margin: 0 0 28px; padding: 24px; background-color: #fdfbf7; border: 1px solid #e8e0d4; text-align: center;">
-              <p style="margin: 0 0 8px; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">Tracking Number</p>
-              <p style="margin: 0; font-size: 24px; font-weight: 400; color: #1a1a1a; font-family: 'Courier New', monospace; letter-spacing: 2px;">${trackingNumber}</p>
+            <div style="margin: 0 0 28px; padding: 24px; background-color: #fef7f7; border: 1px solid #f1eded; border-radius: 8px; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Tracking Number</p>
+              <p style="margin: 0; font-size: 24px; font-weight: 600; color: #0f172a; font-family: 'Courier New', monospace; letter-spacing: 2px;">${trackingNumber}</p>
             </div>
             
             <!-- Order Details -->
-            <div style="border-top: 1px solid #e8e0d4; border-bottom: 1px solid #e8e0d4; padding: 20px 0; margin: 0 0 28px;">
+            <div style="border-top: 1px solid #e8d9d9; border-bottom: 1px solid #e8d9d9; padding: 20px 0; margin: 0 0 28px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="padding: 6px 0; font-family: 'Helvetica Neue', Arial, sans-serif;">
-                    <span style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Order Number</span><br>
-                    <span style="font-size: 15px; color: #1a1a1a; font-weight: 600;">${order.orderNumber}</span>
+                  <td style="padding: 6px 0;">
+                    <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Order Number</span><br>
+                    <span style="font-size: 15px; color: #0f172a; font-weight: 600;">${order.orderNumber}</span>
                   </td>
-                  <td style="padding: 6px 0; text-align: right; font-family: 'Helvetica Neue', Arial, sans-serif;">
-                    <span style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Total</span><br>
-                    <span style="font-size: 15px; color: #1a1a1a; font-weight: 600;">${formatCurrency(order.total)}</span>
+                  <td style="padding: 6px 0; text-align: right;">
+                    <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Total</span><br>
+                    <span style="font-size: 15px; color: #0f172a; font-weight: 600;">${formatCurrency(order.total)}</span>
                   </td>
                 </tr>
               </table>
             </div>
 
             <div style="text-align: center;">
-              <a href="${orderDetailsUrl}" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Track Your Order</a>
+              <a href="${orderDetailsUrl}" style="display: inline-block; padding: 14px 44px; background-color: #ef4444; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; border-radius: 9999px;">Track Your Order</a>
             </div>
           </div>
 
           <!-- Footer -->
-          <div style="background: #1a1a1a; padding: 32px; text-align: center;">
-            <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
-            <div style="width: 30px; height: 1px; background: #333; margin: 0 auto 16px;"></div>
-            <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
+          <div style="border-top: 1px solid #e8d9d9; padding: 28px 32px; text-align: center;">
+            <p style="color: #7f1d1d; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px;">The Babel Edit</p>
+            <div style="width: 30px; height: 1px; background: #e8d9d9; margin: 0 auto 12px;"></div>
+            <p style="color: #64748b; font-size: 11px; margin: 0;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
           </div>
         </div>
       </div>
