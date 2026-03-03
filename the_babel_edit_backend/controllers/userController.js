@@ -104,52 +104,112 @@ export const register = async (req, res) => {
       const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
       const welcomeHtml = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Welcome to The Babel Edit</title>
           </head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
-            <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
-              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+          <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
+              <!-- Outer Card -->
+              <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+                
                 <!-- Header -->
-                <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
-                  <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+                <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
+                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Welcome To</p>
+                  <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
+                  <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
                 </div>
 
-                <!-- Body -->
-                <div style="padding: 32px 24px;">
-                  <h2 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 16px;">Welcome, ${firstName}! 🎉</h2>
+                <!-- Hero Section -->
+                <div style="padding: 40px 32px 24px; text-align: center; background: linear-gradient(180deg, #fdfbf7 0%, #ffffff 100%);">
+                  <h2 style="font-size: 24px; font-weight: 400; color: #1a1a1a; margin: 0 0 16px; font-family: 'Georgia', serif;">Hello, ${firstName}!</h2>
+                  <p style="color: #555; font-size: 15px; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">Thank you for joining our community of style-conscious individuals.</p>
+                  <p style="color: #555; font-size: 15px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">At The Babel Edit, we curate fashion that speaks to every occasion — effortlessly.</p>
+                </div>
+
+                <!-- Divider -->
+                <div style="padding: 0 32px;"><div style="border-top: 1px solid #e8e0d4;"></div></div>
+
+                <!-- Features Grid -->
+                <div style="padding: 32px;">
+                  <p style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #999; margin: 0 0 24px; text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif;">Your Membership Benefits</p>
                   
-                  <p style="color: #374151; margin: 0 0 16px;">Thank you for joining <strong>The Babel Edit</strong>. We're thrilled to have you as part of our community.</p>
-                  
-                  <p style="color: #374151; margin: 0 0 24px;">Here's what you can do now:</p>
-                  
-                  <div style="margin: 0 0 24px;">
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
-                      <span style="color: #374151;">Browse our curated collections</span>
-                    </div>
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
-                      <span style="color: #374151;">Save items to your wishlist</span>
-                    </div>
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                      <span style="color: #ef4444; font-weight: bold; margin-right: 8px;">✦</span>
-                      <span style="color: #374151;">Enjoy exclusive member offers</span>
-                    </div>
-                  </div>
-                  
-                  <div style="text-align: center; margin: 28px 0;">
-                    <a href="${frontendUrl}/en/dashboard" style="display: inline-block; padding: 14px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Start Shopping</a>
-                  </div>
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="padding: 12px 16px; vertical-align: top; border-bottom: 1px solid #f0ebe3;">
+                        <table cellpadding="0" cellspacing="0" border="0"><tr>
+                          <td style="width: 40px; vertical-align: top;">
+                            <div style="width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; text-align: center; line-height: 32px; font-size: 14px;">🛍️</div>
+                          </td>
+                          <td style="padding-left: 12px;">
+                            <p style="font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 0 0 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">Curated Collections</p>
+                            <p style="font-size: 13px; color: #777; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Handpicked fashion from around the world</p>
+                          </td>
+                        </tr></table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 16px; vertical-align: top; border-bottom: 1px solid #f0ebe3;">
+                        <table cellpadding="0" cellspacing="0" border="0"><tr>
+                          <td style="width: 40px; vertical-align: top;">
+                            <div style="width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; text-align: center; line-height: 32px; font-size: 14px;">❤️</div>
+                          </td>
+                          <td style="padding-left: 12px;">
+                            <p style="font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 0 0 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">Personal Wishlist</p>
+                            <p style="font-size: 13px; color: #777; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Save pieces you love and shop when you're ready</p>
+                          </td>
+                        </tr></table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 16px; vertical-align: top; border-bottom: 1px solid #f0ebe3;">
+                        <table cellpadding="0" cellspacing="0" border="0"><tr>
+                          <td style="width: 40px; vertical-align: top;">
+                            <div style="width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; text-align: center; line-height: 32px; font-size: 14px;">✨</div>
+                          </td>
+                          <td style="padding-left: 12px;">
+                            <p style="font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 0 0 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">New Arrivals First</p>
+                            <p style="font-size: 13px; color: #777; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Be the first to discover our latest drops</p>
+                          </td>
+                        </tr></table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 16px; vertical-align: top;">
+                        <table cellpadding="0" cellspacing="0" border="0"><tr>
+                          <td style="width: 40px; vertical-align: top;">
+                            <div style="width: 32px; height: 32px; background: #1a1a1a; border-radius: 50%; text-align: center; line-height: 32px; font-size: 14px;">🎁</div>
+                          </td>
+                          <td style="padding-left: 12px;">
+                            <p style="font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 0 0 2px; font-family: 'Helvetica Neue', Arial, sans-serif;">Exclusive Offers</p>
+                            <p style="font-size: 13px; color: #777; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Members-only discounts and early access to sales</p>
+                          </td>
+                        </tr></table>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- CTA -->
+                <div style="padding: 8px 32px 40px; text-align: center;">
+                  <a href="${frontendUrl}/en/products" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Explore the Collection</a>
+                  <p style="color: #999; font-size: 12px; margin: 16px 0 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Free shipping on your first order over $100</p>
                 </div>
 
                 <!-- Footer -->
-                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
-                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
-                  <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+                <div style="background: #1a1a1a; padding: 32px; text-align: center;">
+                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
+                  <p style="margin: 0 0 12px;">
+                    <a href="${frontendUrl}/en/products" style="color: #999; font-size: 12px; text-decoration: none; margin: 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Shop</a>
+                    <span style="color: #444;">|</span>
+                    <a href="${frontendUrl}/en/about" style="color: #999; font-size: 12px; text-decoration: none; margin: 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">About</a>
+                    <span style="color: #444;">|</span>
+                    <a href="${frontendUrl}/en/contact" style="color: #999; font-size: 12px; text-decoration: none; margin: 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Contact</a>
+                  </p>
+                  <div style="width: 30px; height: 1px; background: #333; margin: 16px auto;"></div>
+                  <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
                 </div>
               </div>
             </div>

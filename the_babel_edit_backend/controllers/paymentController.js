@@ -315,37 +315,49 @@ const handleFailedPayment = async (paymentIntent) => {
 
       const failedHtml = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
           <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb;">
-            <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
-              <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
-                <div style="background: #7f1d1d; padding: 32px 24px; text-align: center;">
-                  <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">The Babel Edit</h1>
+          <body style="font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.7; color: #1a1a1a; margin: 0; padding: 0; background-color: #f5f0eb;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 40px 16px;">
+              <div style="background: #ffffff; border-radius: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden;">
+                <!-- Header -->
+                <div style="background: #1a1a1a; padding: 40px 32px; text-align: center;">
+                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 8px; font-family: 'Helvetica Neue', Arial, sans-serif;">Payment Notice</p>
+                  <h1 style="color: #ffffff; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 2px; font-family: 'Georgia', serif;">THE BABEL EDIT</h1>
+                  <div style="width: 40px; height: 1px; background: #c9a96e; margin: 16px auto 0;"></div>
                 </div>
-                <div style="padding: 32px 24px;">
-                  <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 16px;">Payment Unsuccessful</h2>
-                  <p style="color: #374151; margin: 0 0 12px;">Hi ${order.user.firstName || 'there'},</p>
-                  <p style="color: #374151; margin: 0 0 16px;">We were unable to process payment for your order <strong>#${orderId.slice(-8).toUpperCase()}</strong>.</p>
+
+                <div style="padding: 40px 32px;">
+                  <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: #fef2f2; line-height: 56px; font-size: 24px;">⚠️</div>
+                  </div>
+
+                  <h2 style="font-size: 22px; font-weight: 400; color: #1a1a1a; margin: 0 0 20px; text-align: center; font-family: 'Georgia', serif;">Payment Unsuccessful</h2>
                   
-                  <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin: 0 0 20px;">
-                    <p style="color: #991b1b; font-size: 14px; margin: 0;"><strong>Reason:</strong> ${failureReason}</p>
+                  <p style="color: #555; font-size: 15px; margin: 0 0 12px; font-family: 'Helvetica Neue', Arial, sans-serif;">Hi ${order.user.firstName || 'there'},</p>
+                  <p style="color: #555; font-size: 15px; margin: 0 0 20px; font-family: 'Helvetica Neue', Arial, sans-serif;">We were unable to process payment for your order <strong>#${orderId.slice(-8).toUpperCase()}</strong>.</p>
+                  
+                  <div style="background: #fdf6f6; border-left: 3px solid #c0392b; padding: 14px 20px; margin: 0 0 24px;">
+                    <p style="color: #c0392b; font-size: 13px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;"><strong>Reason:</strong> ${failureReason}</p>
                   </div>
                   
-                  <p style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 8px;">Order items:</p>
-                  <ul style="padding-left: 20px; margin: 0 0 20px;">${itemsList}</ul>
+                  <p style="color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px; font-family: 'Helvetica Neue', Arial, sans-serif;">Order Items</p>
+                  <ul style="padding-left: 20px; margin: 0 0 24px;">${itemsList}</ul>
                   
-                  <p style="color: #374151; margin: 0 0 12px;">Please try again with a different payment method or contact your bank for more details.</p>
+                  <p style="color: #555; font-size: 15px; margin: 0 0 24px; font-family: 'Helvetica Neue', Arial, sans-serif;">Please try again with a different payment method or contact your bank for details.</p>
                   
-                  <div style="text-align: center; margin: 28px 0;">
-                    <a href="${frontendUrl}/en/cart" style="display: inline-block; padding: 14px 32px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Retry Payment</a>
+                  <div style="text-align: center; margin: 32px 0;">
+                    <a href="${frontendUrl}/en/cart" style="display: inline-block; padding: 16px 48px; background-color: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600;">Retry Payment</a>
                   </div>
                   
-                  <p style="color: #6b7280; font-size: 13px; margin: 0;">Need help? Contact us at <a href="mailto:${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}" style="color: #ef4444;">${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}</a></p>
+                  <p style="color: #888; font-size: 13px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">Need help? Contact us at <a href="mailto:${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}" style="color: #c9a96e; text-decoration: none;">${process.env.COMPANY_EMAIL || 'support@thebabeledit.com'}</a></p>
                 </div>
-                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
-                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
-                  <p style="color: #9ca3af; font-size: 11px; margin: 4px 0 0;">This is an automated email — please do not reply.</p>
+
+                <!-- Footer -->
+                <div style="background: #1a1a1a; padding: 32px; text-align: center;">
+                  <p style="color: #c9a96e; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 16px; font-family: 'Helvetica Neue', Arial, sans-serif;">The Babel Edit</p>
+                  <div style="width: 30px; height: 1px; background: #333; margin: 0 auto 16px;"></div>
+                  <p style="color: #666; font-size: 11px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">&copy; ${new Date().getFullYear()} The Babel Edit. All rights reserved.</p>
                 </div>
               </div>
             </div>
