@@ -36,7 +36,7 @@ export default function AuthCallbackPage() {
 
     try {
       const authData = JSON.parse(decodeURIComponent(dataParam));
-      const { user, accessToken } = authData;
+      const { user, accessToken, isNewUser } = authData;
 
       if (!user || !accessToken) {
         throw new Error('Invalid auth data');
@@ -54,7 +54,11 @@ export default function AuthCallbackPage() {
       // Set the user role cookie for middleware
       document.cookie = `userRole=${user.role};path=/;max-age=${7 * 24 * 60 * 60};samesite=strict`;
 
-      toast.success('Signed in successfully!');
+      if (isNewUser) {
+        toast.success(`Welcome to The Babel Edit, ${user.firstName || ''}! 🎉`, { duration: 5000 });
+      } else {
+        toast.success('Welcome back! Signed in successfully.');
+      }
 
       // Redirect based on role
       const role = (user.role || '').toUpperCase();
@@ -72,7 +76,7 @@ export default function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-red-500 rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-600 text-lg">Completing sign in...</p>
       </div>
     </div>

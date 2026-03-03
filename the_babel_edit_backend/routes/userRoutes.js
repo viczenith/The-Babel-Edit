@@ -46,8 +46,8 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { session: false }),
   async (req, res) => {
     try {
-      // req.user now contains { user, accessToken, refreshToken }
-      const { user, accessToken, refreshToken } = req.user;
+      // req.user now contains { user, accessToken, refreshToken, isNewUser }
+      const { user, accessToken, refreshToken, isNewUser } = req.user;
 
       // Set refresh token as httpOnly cookie
       setRefreshTokenCookie(res, refreshToken);
@@ -58,7 +58,8 @@ router.get('/auth/google/callback',
       // Create the response data
       const authData = {
         user: userWithoutSensitiveData,
-        accessToken // Send access token to frontend
+        accessToken,
+        isNewUser: !!isNewUser
       };
 
       const userData = encodeURIComponent(JSON.stringify(authData));
