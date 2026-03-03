@@ -30,8 +30,8 @@ services:
       - key: STRIPE_PUBLISHABLE_KEY
         sync: false
       - key: SENDGRID_API_KEY
-        sync: false  # Set to your SendGrid API key
+        sync: false
       - key: EMAIL_FROM
-        sync: false  # e.g. "The Babel Edit <noreply@thebabeledit.com>" — must be a verified sender in SendGrid
+        sync: false
       - key: COMPANY_EMAIL
-        sync: false  # e.g. "support@thebabeledit.com"
+        sync: false
