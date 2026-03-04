@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { apiRequest, API_ENDPOINTS } from '@/app/lib/api';
-import { Trash2, Check, Star, Search, X, RefreshCw, MessageSquare, AlertCircle, Bug, Lightbulb, HelpCircle, Filter, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Check, Star, Search, X, RefreshCw, MessageSquare, AlertCircle, Bug, Lightbulb, HelpCircle, Filter, CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface FeedbackUser {
@@ -49,6 +49,10 @@ export default function FeedbacksManager() {
 
   // Expanded feedback
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Pagination
+  const FEEDBACKS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { fetchList(); }, []);
 
@@ -159,7 +163,20 @@ export default function FeedbacksManager() {
     setStatusFilter('all');
     setFeaturedFilter('all');
     setSortBy('newest');
+    setCurrentPage(1);
   };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, typeFilter, statusFilter, featuredFilter, sortBy]);
+
+  // Paginated feedbacks
+  const totalPages = Math.max(1, Math.ceil(filteredFeedbacks.length / FEEDBACKS_PER_PAGE));
+  const paginatedFeedbacks = useMemo(() => {
+    const start = (currentPage - 1) * FEEDBACKS_PER_PAGE;
+    return filteredFeedbacks.slice(start, start + FEEDBACKS_PER_PAGE);
+  }, [filteredFeedbacks, currentPage]);
 
   return (
     <div className="space-y-6">
@@ -390,7 +407,7 @@ export default function FeedbacksManager() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredFeedbacks.map(fb => {
+          {paginatedFeedbacks.map(fb => {
             const tc = typeConfig[fb.type] || typeConfig.OTHER;
             const TypeIcon = tc.icon;
             const isExpanded = expandedId === fb.id;
@@ -501,6 +518,71 @@ export default function FeedbacksManager() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && filteredFeedbacks.length > FEEDBACKS_PER_PAGE && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Showing <span className="font-medium">{((currentPage - 1) * FEEDBACKS_PER_PAGE) + 1}</span>–<span className="font-medium">{Math.min(currentPage * FEEDBACKS_PER_PAGE, filteredFeedbacks.length)}</span> of <span className="font-medium">{filteredFeedbacks.length}</span> feedback items
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="p-1.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="First page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                typeof p === 'string' ? (
+                  <span key={`ellipsis-${i}`} className="px-2 py-1.5 text-xs text-gray-400">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      currentPage === p
+                        ? 'bg-gray-900 text-white border-gray-900'
+                        : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="p-1.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Last page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

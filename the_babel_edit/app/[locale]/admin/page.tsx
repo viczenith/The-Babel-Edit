@@ -185,7 +185,7 @@ const AdminPage = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 });
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
   const [error, setError] = useState<ErrorState | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
@@ -234,6 +234,8 @@ const AdminPage = () => {
   const [invActiveFilter, setInvActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [invSortBy, setInvSortBy] = useState<'name-asc' | 'name-desc' | 'stock-asc' | 'stock-desc' | 'price-asc' | 'price-desc' | 'sku-asc' | 'sku-desc'>('name-asc');
   const [invFiltersOpen, setInvFiltersOpen] = useState(false);
+  const INVENTORY_PER_PAGE = 20;
+  const [inventoryPage, setInventoryPage] = useState(1);
 
   // Admin order detail modal state
   const [adminOrderDetail, setAdminOrderDetail] = useState<AdminOrderDetail | null>(null);
@@ -310,6 +312,11 @@ const AdminPage = () => {
     setSearchTerm('');
     setAllCategoryProducts([]);
   }, [adminCategory]);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     const getEl = () => document.getElementById('admin-header');
@@ -469,11 +476,24 @@ const AdminPage = () => {
       );
       // Primary: use server response
       setProducts(response.products || []);
-      setPagination(response.pagination || { page: 1, limit: 10, total: 0, pages: 1 });
+      setPagination(response.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
 
       // Store all products for this category (without search filter) for suggestions
+      // Fetch a larger batch for autocomplete so suggestions cover all products, not just current page
       if (!debouncedSearchTerm && adminCategory) {
-        setAllCategoryProducts(response.products);
+        if (response.pagination && response.pagination.total > response.products.length) {
+          // Fetch all products for autocomplete suggestions (background, non-blocking)
+          apiRequest<{ products: Product[] }>(
+            `${API_ENDPOINTS.PRODUCTS.ADMIN.LIST}?limit=${Math.min(response.pagination.total, 500)}&includeInactive=true&category=${adminCategory}`,
+            { requireAuth: true }
+          ).then(allRes => {
+            setAllCategoryProducts(allRes.products || response.products);
+          }).catch(() => {
+            setAllCategoryProducts(response.products);
+          });
+        } else {
+          setAllCategoryProducts(response.products);
+        }
       }
 
       // Fallback: if filtering by category returned zero results (no search active), try a client-side match
@@ -798,6 +818,7 @@ const AdminPage = () => {
     setInvActiveFilter('all');
     setInvSortBy('name-asc');
     setInventorySearch('');
+    setInventoryPage(1);
   };
 
   // Filtered inventory based on search and all filters
@@ -863,6 +884,18 @@ const AdminPage = () => {
 
     return items;
   }, [inventory, inventorySearch, inventoryFilter, invCategoryFilter, invStockMin, invStockMax, invThresholdFilter, invActiveFilter, invSortBy]);
+
+  // Reset inventory page when filters change
+  useEffect(() => {
+    setInventoryPage(1);
+  }, [inventorySearch, inventoryFilter, invCategoryFilter, invStockMin, invStockMax, invThresholdFilter, invActiveFilter, invSortBy]);
+
+  // Paginated inventory
+  const inventoryTotalPages = Math.max(1, Math.ceil(filteredInventory.length / INVENTORY_PER_PAGE));
+  const paginatedInventory = useMemo(() => {
+    const start = (inventoryPage - 1) * INVENTORY_PER_PAGE;
+    return filteredInventory.slice(start, start + INVENTORY_PER_PAGE);
+  }, [filteredInventory, inventoryPage]);
 
   // Inventory stats
   const inventoryStats = useMemo(() => {
@@ -1668,7 +1701,7 @@ const AdminPage = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="text-xs sm:text-sm text-blue-600 font-medium">Total Products</div>
-                      <div className="text-2xl sm:text-3xl font-bold text-blue-900 mt-1">{products.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-900 mt-1">{pagination.total || products.length}</div>
                     </div>
                     <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="text-xs sm:text-sm text-green-600 font-medium">In Stock</div>
@@ -1834,6 +1867,65 @@ const AdminPage = () => {
                   )}
                   {products.length > 0 && (
                     <DataTable data={products} columns={productColumns} actions={productActions} loading={loading} emptyMessage={emptyProductsMessage} />
+                  )}
+
+                  {/* Product Pagination */}
+                  {pagination.pages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-200 gap-3">
+                      <span className="text-sm text-gray-600">
+                        Showing {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} products
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          disabled={pagination.page <= 1}
+                          onClick={() => setPagination(prev => ({ ...prev, page: 1 }))}
+                          className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          «
+                        </button>
+                        <button
+                          disabled={pagination.page <= 1}
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                          className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          ‹ Prev
+                        </button>
+                        {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                          let page: number;
+                          if (pagination.pages <= 5) { page = i + 1; }
+                          else if (pagination.page <= 3) { page = i + 1; }
+                          else if (pagination.page >= pagination.pages - 2) { page = pagination.pages - 4 + i; }
+                          else { page = pagination.page - 2 + i; }
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setPagination(prev => ({ ...prev, page }))}
+                              className={`px-3 py-1.5 text-xs font-medium rounded-md border transition ${
+                                pagination.page === page
+                                  ? 'bg-blue-600 text-white border-blue-600'
+                                  : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                        <button
+                          disabled={pagination.page >= pagination.pages}
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                          className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          Next ›
+                        </button>
+                        <button
+                          disabled={pagination.page >= pagination.pages}
+                          onClick={() => setPagination(prev => ({ ...prev, page: pagination.pages }))}
+                          className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                          »
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -2661,11 +2753,74 @@ const AdminPage = () => {
               )}
 
               {/* Data Table */}
-              <DataTable data={filteredInventory} columns={inventoryColumns} loading={inventoryLoading} emptyMessage={
+              <DataTable data={paginatedInventory} columns={inventoryColumns} loading={inventoryLoading} emptyMessage={
                 inventorySearch || inventoryFilter !== 'all'
                   ? `No products match your ${inventorySearch ? 'search' : 'filter'}`
                   : 'No inventory data available'
               } />
+
+              {/* Pagination Controls */}
+              {filteredInventory.length > INVENTORY_PER_PAGE && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Showing <span className="font-medium">{((inventoryPage - 1) * INVENTORY_PER_PAGE) + 1}</span>–<span className="font-medium">{Math.min(inventoryPage * INVENTORY_PER_PAGE, filteredInventory.length)}</span> of <span className="font-medium">{filteredInventory.length}</span> items
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setInventoryPage(1)}
+                      disabled={inventoryPage === 1}
+                      className="px-2 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      &laquo;
+                    </button>
+                    <button
+                      onClick={() => setInventoryPage(p => Math.max(1, p - 1))}
+                      disabled={inventoryPage === 1}
+                      className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      &lsaquo; Prev
+                    </button>
+                    {Array.from({ length: inventoryTotalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === inventoryTotalPages || Math.abs(p - inventoryPage) <= 1)
+                      .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, i) =>
+                        typeof p === 'string' ? (
+                          <span key={`ellipsis-${i}`} className="px-2 py-1.5 text-xs text-gray-400">…</span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setInventoryPage(p)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                              inventoryPage === p
+                                ? 'bg-gray-900 text-white border-gray-900'
+                                : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        )
+                      )}
+                    <button
+                      onClick={() => setInventoryPage(p => Math.min(inventoryTotalPages, p + 1))}
+                      disabled={inventoryPage === inventoryTotalPages}
+                      className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next &rsaquo;
+                    </button>
+                    <button
+                      onClick={() => setInventoryPage(inventoryTotalPages)}
+                      disabled={inventoryPage === inventoryTotalPages}
+                      className="px-2 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      &raquo;
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

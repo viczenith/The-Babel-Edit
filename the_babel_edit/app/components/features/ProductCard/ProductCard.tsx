@@ -102,40 +102,49 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [imageError, setImageError] = React.useState(false);
 
   const cardClasses = `
-    border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm
-    transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-blue-200
+    group/card border-0 rounded-xl overflow-hidden bg-white
+    shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)]
+    transition-all duration-400 ease-out hover:-translate-y-1.5
     w-full h-full flex flex-col
     ${variant === 'small' ? 'max-w-[180px] md:max-w-full' : ''}
     ${isOutOfStock ? 'grayscale opacity-60 pointer-events-none' : ''} 
     ${className}
   `;
   const imageContainerClasses = `
-    relative w-full overflow-hidden bg-gray-100
-    ${variant === 'small' ? 'h-40 md:h-32' : 'h-60 md:h-52'}
+    relative w-full overflow-hidden bg-gray-50
+    ${variant === 'small' ? 'h-40 md:h-32' : 'h-64 md:h-56'}
     ${imageContainerClassName}
   `;
-  const imageClasses = "object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out";
+  const imageClasses = "object-cover group-hover:scale-105 transition-transform duration-500 ease-out";
 
   return (
     <div className={cardClasses.trim()}>
       <div className={`${imageContainerClasses.trim()} group`}>
         {isOutOfStock && (
           <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
-            <span className="bg-black text-white font-bold py-2 px-4 rounded-lg">
+            <span className="bg-[#0f172a] text-white text-xs font-semibold py-1.5 px-4 rounded-full tracking-wide">
               Out of Stock
+            </span>
+          </div>
+        )}
+        {/* Sale Badge */}
+        {product.comparePrice && Number(product.comparePrice) > Number(product.price) && !isOutOfStock && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="bg-[#ef4444] text-white text-[10px] font-bold py-1 px-2.5 rounded-full tracking-wide uppercase">
+              {Math.round((1 - Number(product.price) / Number(product.comparePrice)) * 100)}% Off
             </span>
           </div>
         )}
         {/* Wishlist Button */}
         <button
           onClick={handleToggleWishlist}
-          className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-all duration-200 shadow-sm"
+          className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white hover:scale-110 transition-all duration-200 shadow-sm"
           aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           disabled={wishlistLoading}
         >
           <Heart
             className={`h-4 w-4 transition-colors ${
-              isInWishlist ? 'fill-pink-500 text-pink-500' : 'text-gray-600 hover:text-pink-500'
+              isInWishlist ? 'fill-[#ef4444] text-[#ef4444]' : 'text-gray-500 hover:text-[#ef4444]'
             }`}
           />
         </button>
@@ -176,44 +185,71 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </Link>
       </div>
       
-      <div className="p-3 md:p-4 flex flex-col gap-2 md:gap-3 flex-grow">
-        <h3 className="text-sm md:text-base font-medium text-gray-800 line-clamp-2 min-h-[28px] md:min-h-[32px]">
-            {product.name}
-        </h3>
+      <div className="px-3 pt-3 pb-3 md:px-4 md:pt-3.5 md:pb-4 flex flex-col gap-1.5 md:gap-2 grow">
+        {/* Product Name */}
+        <Link 
+          href={`/${locale}/products/${product.id}`}
+          className="no-underline"
+          onMouseEnter={handlePrefetch}
+        >
+          <h3 className="text-[13px] md:text-[15px] font-semibold text-[#0f172a] line-clamp-2 min-h-8 md:min-h-9 leading-snug tracking-tight
+                       group-hover/card:text-[#ef4444] transition-colors duration-300 cursor-pointer"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+              {product.name}
+          </h3>
+        </Link>
         
-        {/* Description if available */}
+        {/* Description - hidden for cleaner card layout
         {product.description && (
-          <p className="text-xs md:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="text-[11px] md:text-xs text-[#64748b] line-clamp-2 leading-relaxed font-normal">
             {product.description}
           </p>
         )}
+        */}
         
-        {/* Rating if available */}
+        {/* Rating */}
         {product.avgRating > 0 && (
-          <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500">
-            <span>⭐</span>
-            <span>{product.avgRating}</span>
-            {product.reviewCount > 0 && <span>({product.reviewCount})</span>}
+          <div className="flex items-center gap-1 text-[11px] md:text-xs">
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className={`text-[10px] ${i < Math.round(product.avgRating) ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
+              ))}
+            </div>
+            {product.reviewCount > 0 && <span className="text-[#94a3b8] ml-0.5">({product.reviewCount})</span>}
           </div>
         )}
         
-        <div className="flex items-center justify-between gap-2 mt-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-sm md:text-base font-semibold text-blue-600">${product.price}</span>
+        {/* Price & Cart — pushed to bottom */}
+        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-100">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[15px] md:text-base font-bold text-[#0f172a] tracking-tight">
+              ${Number(product.price).toFixed(2)}
+            </span>
             {product.comparePrice && (
-              <span className="text-xs md:text-sm text-gray-400 line-through">${product.comparePrice}</span>
+              <span className="text-[11px] md:text-xs text-[#94a3b8] line-through font-normal">
+                ${Number(product.comparePrice).toFixed(2)}
+              </span>
             )}
           </div>
           
           <button 
-            className="flex-shrink-0 bg-blue-600 text-white border-none rounded-md p-2 text-xs font-medium cursor-pointer transition-all duration-300 ease-in-out
-                       flex items-center justify-center gap-2 whitespace-nowrap h-8
-                       hover:bg-blue-700 hover:-translate-y-px hover:shadow-md
-                       disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+            className={`shrink-0 border-none rounded-full p-2 md:p-2.5 cursor-pointer transition-all duration-300 ease-out
+                       flex items-center justify-center
+                       hover:-translate-y-0.5 hover:shadow-md
+                       disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+                       ${isInCart 
+                         ? 'bg-[#0f172a] text-white' 
+                         : 'bg-[#0f172a] text-white hover:bg-[#ef4444]'
+                       }`}
             onClick={handleAddToCart}
             disabled={isInCart || isOutOfStock || isAddingToCart}
+            title={isInCart ? 'Already in cart' : 'Add to cart'}
           >
-            <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
+            {isAddingToCart ? (
+              <div className="h-3.5 w-3.5 md:h-4 md:w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <ShoppingCart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInCart ? 'fill-white' : ''}`} />
+            )}
           </button>
         </div>
       </div>
