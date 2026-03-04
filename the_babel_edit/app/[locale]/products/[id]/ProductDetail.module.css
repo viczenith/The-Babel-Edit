@@ -50,7 +50,7 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Add to Cart and Wishlist Buttons */
+/* Add to Basket and Wishlist Buttons */
 .addToCartBtn {
   background: var(--color-accent);
   color: var(--color-background);

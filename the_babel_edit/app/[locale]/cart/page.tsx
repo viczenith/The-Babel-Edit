@@ -133,7 +133,7 @@ export default function CartPage() {
       <div className="min-h-screen">
         <NavbarWithSuspense />
         <main className="py-8 px-4 max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Basket</h1>
           <div className="flex gap-8 items-start">
             <div className="flex-1">
               <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -169,12 +169,12 @@ export default function CartPage() {
       <div className="min-h-screen">
         <NavbarWithSuspense />
         <main className="py-8 px-4 max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Basket</h1>
           <div className="flex gap-8 items-start">
             <div className="flex-1">
               <div style={{ textAlign: 'center', padding: '2rem' }}>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading cart...</p>
+                <p className="mt-4 text-gray-600">Loading basket...</p>
               </div>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function CartPage() {
       <div className="min-h-screen">
         <NavbarWithSuspense />
         <main className="py-8 px-4 max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Basket</h1>
           <div className="flex gap-8 items-start">
             <div className="flex-1">
               <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -213,7 +213,7 @@ export default function CartPage() {
     <div className="min-h-screen">
       <NavbarWithSuspense />
       <main className="py-8 px-4 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">Shopping Basket</h1>
         
         {items.length === 0 ? (
           <div className="flex gap-8 items-start">
@@ -222,7 +222,7 @@ export default function CartPage() {
                 <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <p className="text-gray-600 mb-4">Your cart is empty.</p>
+                <p className="text-gray-600 mb-4">Your basket is empty.</p>
                 <Link 
                   href={`/${currentLocale}/products`}
                   className="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700"

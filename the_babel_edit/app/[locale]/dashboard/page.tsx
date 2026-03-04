@@ -130,7 +130,7 @@ const SquareProductCard = ({ product }: { product: Product }) => {
 
     // Check if user is authenticated
     if (!user) {
-      toast.error('Please sign in to add items to cart', {
+      toast.error('Please sign in to add items to basket', {
         duration: 3000,
         position: 'top-right',
       });
@@ -140,13 +140,13 @@ const SquareProductCard = ({ product }: { product: Product }) => {
 
     try {
       await addToCart(product.id, 1);
-      toast.success(`${product.name} added to cart!`, {
+      toast.success(`${product.name} added to basket!`, {
         duration: 3000,
         position: 'top-right',
       });
     } catch (error) {
-      console.error('Failed to add to cart:', error);
-      toast.error('Failed to add to cart. Please try again.', {
+      console.error('Failed to add to basket:', error);
+      toast.error('Failed to add to basket. Please try again.', {
         duration: 3000,
         position: 'top-right',
       });
@@ -247,7 +247,7 @@ const SquareProductCard = ({ product }: { product: Product }) => {
           }`} />
         </button>
 
-        {/* Quick Add to Cart — slides up from bottom on hover */}
+        {/* Quick Add to Basket — slides up from bottom on hover */}
         <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
           <button
             onClick={handleAddToCart}
@@ -255,7 +255,7 @@ const SquareProductCard = ({ product }: { product: Product }) => {
             className="w-full py-3 bg-black/80 backdrop-blur-md text-white text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingBag className="w-4 h-4" />
-            {isProductInCart ? 'In Cart' : 'Quick Add'}
+            {isProductInCart ? 'In Basket' : 'Quick Add'}
           </button>
         </div>
       </div>

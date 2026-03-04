@@ -132,11 +132,11 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    res.json({ message: 'Item added to cart successfully' });
+    res.json({ message: 'Item added to basket successfully' });
 
   } catch (error) {
     console.error('Add to cart error:', error);
-    res.status(500).json({ message: 'Failed to add item to cart' });
+    res.status(500).json({ message: 'Failed to add item to basket' });
   }
 };
 
@@ -211,11 +211,11 @@ export const removeFromCart = async (req, res) => {
       where: { id: itemId }
     });
 
-    res.json({ message: 'Item removed from cart successfully' });
+    res.json({ message: 'Item removed from basket successfully' });
 
   } catch (error) {
     console.error('Remove from cart error:', error);
-    res.status(500).json({ message: 'Failed to remove item from cart' });
+    res.status(500).json({ message: 'Failed to remove item from basket' });
   }
 };
 

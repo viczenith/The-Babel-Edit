@@ -11,7 +11,7 @@ const ProductActions: React.FC<ProductActionsProps> = ({ onAddToCart, onAddToWis
   return (
     <div className={styles.actionsWrapper}>
       <button className={styles.addToCartBtn} onClick={onAddToCart} type="button">
-        Add to Cart
+        Add to Basket
       </button>
       <button className={styles.wishlistBtn} onClick={onAddToWishlist} type="button" aria-label="Add to wishlist">
         <span className={styles.heart}>{isWishlisted ? '❤️' : '🤍'}</span>

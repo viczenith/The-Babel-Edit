@@ -13,23 +13,22 @@ export default function AboutPage() {
         <div className={styles.content}>
           <h1 className={styles.header}>About Us</h1>
           <div className={styles.subheader}>
-            {/* At Babel, we believe clothing is more than just what you wear — it's a language of identity, culture, and connection. Inspired by the ancient city that brought together people of many tongues, Babel blends eras, styles, and stories into one expressive wardrobe. */}
-
+            The name Babel is inspired by the biblical story of the Tower of Babel; A moment in history when language divided humanity and connection was disrupted.
+            <br /><br />
             At The Babel Edit, we see fashion as a universal dialect. Through garments from different eras and countries, we reconnect what was once separated. Each piece tells a story, crossing borders, generations, and cultures. Proving that style speaks where words sometimes cannot.
             <br /><br />
-            We thoughtfully curate high-quality, pre-loved pieces from around the world — garments that are not only stylish and sustainable but also rich in history and soul. Whether you're rediscovering vintage treasures or exploring a new sense of style, Babel invites you to express yourself through fashion that transcends trends and time.
+            We thoughtfully curate high-quality, pre-loved pieces from around the world. Garments that are not only stylish and sustainable but also rich in history and soul. Whether you're rediscovering vintage treasures or exploring a new sense of style, The Babel Edit (TBE)  invites you to express yourself through fashion that transcends trends and time.
           </div>
 
           <div className={styles.sectionTitle}>Our Story</div>
           <div className={styles.subheader}>
-            {/* Babel began as a dream in 2022 — born from a love of sustainability, cultural richness, and the timeless beauty of antiques. What started as a quiet idea soon grew into a vision: to create a space where fashion could tell stories, preserve history, and celebrate individuality. */}
-            The name Babel is inspired by the biblical story of the Tower of Babel; A moment in history when language divided humanity and connection was disrupted.
+            The Babel Edit began as a dream in 2022; Born from a love of sustainability, cultural richness, and the timeless beauty of antiques. What started as a quiet idea soon grew into a vision; To create a space where fashion could tell stories, preserve history, and celebrate individuality.
             <br /><br />
-            After years of curating, planning, and building with intention, Babel came to life in 2025. It was more than the launch of a brand — it was the fulfillment of a passion to merge style with meaning.
+            After years of curating, planning, and building with intention, The Babel Edit came to life in 2025. It was more than the launch of a brand , it was and is the fulfillment of a passion to merge style with meaning.
             <br /><br />
-            Rooted in the belief that fashion should honor both people and the planet, Babel brings together pre-loved pieces from around the world. Each item is handpicked for its uniqueness, soul, and connection to culture — not mass-produced trends.
+            Rooted in the belief that fashion should honor both people and the planet, The Babel Edit brings together pre-loved pieces from around the world. Each item is handpicked for its uniqueness, soul, and connection to culture, not mass-produced trends.
             <br /><br />
-            Babel exists to create, connect, and give back — to share beauty with the community, and to offer a wardrobe that reflects who you are and what you value.
+            The Babel Edit exists to create, connect, and give back. To share beauty with the community, and to offer a wardrobe that reflects who you are and what you value.
             <br /><br />
             This is more than clothing. This is our story — and we're so glad it's now part of yours.
           </div>

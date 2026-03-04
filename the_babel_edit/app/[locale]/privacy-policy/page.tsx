@@ -356,7 +356,7 @@ const PrivacyPolicy = () => {
               <div className="p-4 bg-slate-50 rounded-lg">
                 <h4 className="font-semibold text-slate-800 mb-2">Essential Cookies</h4>
                 <p className="text-slate-600 text-sm">
-                  Required for basic website functionality, shopping cart, and secure checkout process.
+                  Required for basic website functionality, shopping basket, and secure checkout process.
                 </p>
               </div>
               <div className="p-4 bg-slate-50 rounded-lg">

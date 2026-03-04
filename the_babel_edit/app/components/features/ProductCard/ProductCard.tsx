@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { useCartStore, useWishlistStore, useProductStore, Product } from '@/app/store';
 import { toast } from 'react-hot-toast';
 import { isBackendImageUrl, resolveImageUrl } from '@/app/utils/imageUrl';
@@ -67,9 +67,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const handleAddToCart = async () => {
     try {
       await addToCart(product.id, 1);
-      toast.success(`${product.name} added to cart!`);
+      toast.success(`${product.name} added to basket!`);
     } catch (error) {
-      toast.error('Failed to add to cart');
+      toast.error('Failed to add to basket');
     }
   };
 
@@ -233,22 +233,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
           
           <button 
-            className={`shrink-0 border-none rounded-full p-2 md:p-2.5 cursor-pointer transition-all duration-300 ease-out
-                       flex items-center justify-center
+            className={`shrink-0 border-none rounded-full px-3 py-1.5 md:px-4 md:py-2 cursor-pointer transition-all duration-300 ease-out
+                       flex items-center justify-center gap-1.5
                        hover:-translate-y-0.5 hover:shadow-md
                        disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
+                       text-[10px] md:text-xs font-semibold tracking-wide uppercase whitespace-nowrap
                        ${isInCart 
                          ? 'bg-[#0f172a] text-white' 
                          : 'bg-[#0f172a] text-white hover:bg-[#ef4444]'
                        }`}
             onClick={handleAddToCart}
             disabled={isInCart || isOutOfStock || isAddingToCart}
-            title={isInCart ? 'Already in cart' : 'Add to cart'}
+            title={isInCart ? 'Already in basket' : 'Add to basket'}
           >
             {isAddingToCart ? (
-              <div className="h-3.5 w-3.5 md:h-4 md:w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isInCart ? (
+              'In Basket'
             ) : (
-              <ShoppingCart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInCart ? 'fill-white' : ''}`} />
+              'Add to Basket'
             )}
           </button>
         </div>

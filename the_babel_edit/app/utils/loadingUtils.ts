@@ -18,7 +18,7 @@ export const LOADING_MESSAGES = {
   LOGOUT: 'Signing you out...',
   SAVING: 'Saving changes...',
   LOADING_PRODUCTS: 'Loading products...',
-  ADDING_TO_CART: 'Adding to cart...',
+  ADDING_TO_CART: 'Adding to basket...',
   CHECKOUT: 'Processing checkout...',
   LANGUAGE_CHANGE: 'Changing language...',
   FORM_SUBMISSION: 'Submitting form...',

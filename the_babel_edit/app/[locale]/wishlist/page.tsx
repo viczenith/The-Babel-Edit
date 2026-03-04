@@ -76,7 +76,7 @@ export default function WishlistPage() {
       await addToCart(productId, 1);
       await removeFromWishlist(productId);
     } catch (error) {
-      console.error('Failed to move item to cart:', error);
+      console.error('Failed to move item to basket:', error);
     } finally {
       setMovingItems(prev => {
         const next = new Set(prev);
@@ -205,7 +205,7 @@ export default function WishlistPage() {
                       onClick={() => handleMoveToCart(item.productId)}
                       disabled={isItemLoading}
                     >
-                      {isMoving ? 'Moving...' : 'Move to Cart'}
+                      {isMoving ? 'Moving...' : 'Move to Basket'}
                     </button>
                     <button
                       className={styles.removeBtn}

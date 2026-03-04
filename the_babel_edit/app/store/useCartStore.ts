@@ -92,8 +92,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
       get().fetchCart().catch(err => console.error('Background cart fetch failed:', err));
       
     } catch (error) {
-      console.error('Failed to add to cart:', error);
-      set({ error: error instanceof Error ? error.message : 'Failed to add to cart' });
+      console.error('Failed to add to basket:', error);
+      set({ error: error instanceof Error ? error.message : 'Failed to add to basket' });
       
       // Fallback to local storage for offline functionality
       const { items } = get();
@@ -158,8 +158,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
       await get().fetchCart();
       
     } catch (error) {
-      console.error('Failed to remove from cart:', error);
-      set({ error: error instanceof Error ? error.message : 'Failed to remove from cart' });
+      console.error('Failed to remove from basket:', error);
+      set({ error: error instanceof Error ? error.message : 'Failed to remove from basket' });
       
       // Fallback to local removal
       const { items } = get();

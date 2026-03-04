@@ -312,11 +312,11 @@ export const moveToCart = async (req, res) => {
     });
 
     res.json({ 
-      message: 'Product moved from wishlist to cart successfully' 
+      message: 'Product moved from wishlist to basket successfully' 
     });
 
   } catch (error) {
-    console.error('Move to cart error:', error);
-    res.status(500).json({ message: 'Failed to move product to cart' });
+    console.error('Move to basket error:', error);
+    res.status(500).json({ message: 'Failed to move product to basket' });
   }
 };

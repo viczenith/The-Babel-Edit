@@ -205,7 +205,7 @@ function PaymentSuccessContent() {
               onClick={() => router.push(`/${locale}/cart`)}
               className="flex-1 border-2 border-gray-300 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
             >
-              Return to Cart
+              Return to Basket
             </button>
           </div>
         </div>

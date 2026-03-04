@@ -68,7 +68,7 @@ const CookiePolicy = () => {
             <div className="p-4 bg-slate-50 rounded-lg">
               <h3 className="font-semibold text-slate-800 mb-2">Essential Cookies</h3>
               <p className="text-slate-600 text-sm">
-                Required for core site functionality, such as logging in, shopping cart, and secure checkout.
+                Required for core site functionality, such as logging in, shopping basket, and secure checkout.
               </p>
             </div>
             <div className="p-4 bg-slate-50 rounded-lg">

@@ -282,7 +282,7 @@ export default function CheckoutPage() {
         <main className="max-w-7xl mx-auto px-4 py-16">
           <div className="flex flex-col items-center justify-center">
             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600 font-medium">Verifying your cart...</p>
+            <p className="text-gray-600 font-medium">Verifying your basket...</p>
           </div>
         </main>
         <Footer />

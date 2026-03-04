@@ -171,7 +171,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
           )}
         </div>
 
-        {/* Add to Cart Button */}
+        {/* Add to Basket Button */}
         {/* {onAddToCart && product.isInStock && (
           <Button
             onClick={handleAddToCart}
@@ -180,7 +180,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
             size="sm"
             leftIcon={<ShoppingCart className="h-4 w-4" />}
           >
-            {isInCart ? "In Cart" : "Add to Cart"}
+            {isInCart ? "In Basket" : "Add to Basket"}
           </Button>
         )} */}
 
