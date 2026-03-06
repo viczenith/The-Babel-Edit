@@ -132,82 +132,156 @@ function Gallery({ images, onWishlistClick, isWishlisted, wishlistLoading }: {
   const [failed, setFailed] = useState<Set<string>>(new Set());
   const [zoomed, setZoomed] = useState(false);
   const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
 
   const src = (s: string) => (!s || failed.has(s)) ? PLACEHOLDER : resolveImageUrl(s);
 
+  const go = useCallback((dir: 1 | -1) => {
+    if (!images?.length) return;
+    setIdx(prev => (prev + dir + images.length) % images.length);
+  }, [images?.length]);
+
+  const goTo = useCallback((i: number) => {
+    setIdx(i);
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [go, images]);
+
+  // Scroll active thumbnail into view
+  useEffect(() => {
+    if (!thumbRef.current) return;
+    const active = thumbRef.current.children[idx] as HTMLElement;
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [idx]);
+
   if (!images?.length) return (
-    <div className="rounded-2xl bg-gray-50 aspect-square flex items-center justify-center"><p className="text-gray-400 text-sm">No image</p></div>
+    <div className="rounded-2xl bg-gray-50 aspect-3/4 flex items-center justify-center"><p className="text-gray-400 text-sm">No image</p></div>
   );
 
   const mainSrc = src(images[idx].src);
   const mainIsBackend = isBackendImageUrl(images[idx].src);
 
+  const renderImage = (imgSrc: string, imgAlt: string, _isBackend: boolean, className: string, onError: () => void, _priority = false, _fill = false, width?: number, height?: number) => {
+    return <img src={imgSrc} alt={imgAlt} className={className} onError={onError} loading="lazy" />;
+  };
+
   return (
-    <div className="space-y-3">
-      <div ref={ref}
-        className="relative rounded-2xl overflow-hidden bg-gray-50 aspect-square cursor-crosshair group"
-        onMouseEnter={() => setZoomed(true)} onMouseLeave={() => setZoomed(false)}
-        onMouseMove={e => { if (!ref.current) return; const r = ref.current.getBoundingClientRect(); setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 }); }}>
-        {mainIsBackend ? (
-          <img src={mainSrc} alt={images[idx].alt}
-            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`}
-            style={zoomed ? { transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
-            onError={() => setFailed(p => new Set(p).add(images[idx].src))} />
-        ) : (
-          <Image src={mainSrc} alt={images[idx].alt} fill sizes="(max-width: 768px) 100vw, 50vw"
-            priority
-            className={`object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`}
-            style={zoomed ? { transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
-            onError={() => setFailed(p => new Set(p).add(images[idx].src))} />
-        )}
-
-        {/* Floating actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-          <button onClick={e => { e.stopPropagation(); onWishlistClick(); }} disabled={wishlistLoading}
-            className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-110 active:scale-95">
-            {wishlistLoading ? (
-              <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-            ) : (
-              <svg className={`w-5 h-5 transition-colors ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'fill-none text-gray-500'}`} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-              </svg>
-            )}
-          </button>
-          <button onClick={() => { if (navigator.share) navigator.share({ title: 'Check this out', url: window.location.href }); else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); } }}
-            className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-110 active:scale-95">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-          </button>
-        </div>
-
-        {/* Counter */}
+    <>
+      <div className="flex flex-col-reverse lg:flex-row gap-3">
+        {/* Thumbnail strip (vertical on desktop, horizontal on mobile) */}
         {images.length > 1 && (
-          <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-medium">{idx + 1} / {images.length}</div>
+          <div ref={thumbRef}
+            className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden lg:max-h-150 pb-1 lg:pb-0 lg:pr-1 scrollbar-hide"
+            style={{ scrollbarWidth: 'none' }}>
+            {images.map((img, i) => (
+              <button key={img.src + i} onClick={() => goTo(i)}
+                className={`relative shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-lg overflow-hidden transition-all duration-300 ${i === idx ? 'ring-2 ring-gray-900 ring-offset-2 shadow-md' : 'opacity-50 hover:opacity-90 hover:shadow-sm'}`}>
+                {renderImage(
+                  src(img.src), img.alt, isBackendImageUrl(img.src),
+                  'w-full h-full object-cover',
+                  () => setFailed(p => new Set(p).add(img.src)),
+                  false, false, 72, 72
+                )}
+              </button>
+            ))}
+          </div>
         )}
 
-        {/* Zoom hint */}
-        <div className="absolute bottom-3 right-3 bg-black/40 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity tracking-wide uppercase font-medium pointer-events-none">
-          Hover to zoom
+        {/* Main image */}
+        <div className="flex-1">
+          <div ref={ref}
+            className="relative rounded-2xl overflow-hidden bg-gray-50 aspect-3/4 cursor-crosshair group select-none"
+            onMouseEnter={() => setZoomed(true)} onMouseLeave={() => setZoomed(false)}
+            onMouseMove={e => { if (!ref.current) return; const r = ref.current.getBoundingClientRect(); setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 }); }}
+            onTouchStart={e => setTouchStart(e.touches[0].clientX)}
+            onTouchEnd={e => {
+              if (touchStart === null) return;
+              const diff = e.changedTouches[0].clientX - touchStart;
+              if (Math.abs(diff) > 50) go(diff < 0 ? 1 : -1);
+              setTouchStart(null);
+            }}>
+
+            <div className="absolute inset-0">
+              {renderImage(
+                mainSrc, images[idx].alt, mainIsBackend,
+                `absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out ${zoomed ? 'scale-150' : 'scale-100'}`,
+                () => setFailed(p => new Set(p).add(images[idx].src)),
+                true, !mainIsBackend
+              )}
+              {zoomed && (
+                <div className="absolute inset-0 z-10 pointer-events-none" style={{
+                  backgroundImage: `url(${mainSrc})`,
+                  backgroundPosition: `${pos.x}% ${pos.y}%`,
+                  backgroundSize: '250%',
+                  backgroundRepeat: 'no-repeat',
+                }} />
+              )}
+            </div>
+
+            {/* Navigation arrows */}
+            {images.length > 1 && (
+              <>
+                <button onClick={e => { e.stopPropagation(); go(-1); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110 active:scale-95 z-10">
+                  <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button onClick={e => { e.stopPropagation(); go(1); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110 active:scale-95 z-10">
+                  <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </>
+            )}
+
+            {/* Floating actions */}
+            <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+              <button onClick={e => { e.stopPropagation(); onWishlistClick(); }} disabled={wishlistLoading}
+                className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-110 active:scale-95">
+                {wishlistLoading ? (
+                  <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                ) : (
+                  <svg className={`w-5 h-5 transition-colors ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'fill-none text-gray-500'}`} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                )}
+              </button>
+              <button onClick={e => { e.stopPropagation(); if (navigator.share) navigator.share({ title: 'Check this out', url: window.location.href }); else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); } }}
+                className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-110 active:scale-95">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+              </button>
+            </div>
+
+            {/* Counter pill */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium tracking-wide">
+                {idx + 1} / {images.length}
+              </div>
+            )}
+
+            {/* Dot indicators (mobile) */}
+            {images.length > 1 && images.length <= 8 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden">
+                {images.map((_, i) => (
+                  <button key={i} onClick={e => { e.stopPropagation(); goTo(i); }}
+                    className={`rounded-full transition-all duration-300 ${i === idx ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/50'}`} />
+                ))}
+              </div>
+            )}
+
+          </div>
         </div>
       </div>
-
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {images.map((img, i) => (
-            <button key={img.src + i} onClick={() => setIdx(i)}
-              className={`relative shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-lg overflow-hidden transition-all duration-200 ${i === idx ? 'ring-2 ring-blue-600 ring-offset-2' : 'opacity-50 hover:opacity-90'}`}>
-              {isBackendImageUrl(img.src) ? (
-                <img src={src(img.src)} alt={img.alt}
-                  onError={() => setFailed(p => new Set(p).add(img.src))} className="w-full h-full object-cover"/>
-              ) : (
-                <Image src={src(img.src)} alt={img.alt} width={72} height={72}
-                  onError={() => setFailed(p => new Set(p).add(img.src))} className="w-full h-full object-cover"/>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -340,7 +414,7 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
 
   const { currentProduct, loading, error, fetchProductById, featuredProducts, fetchFeaturedProducts } = useProductStore();
-  const { addToCart, isProductLoading } = useCartStore();
+  const { addToCart, isProductLoading, isInCart } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist, loading: wishlistLoading } = useWishlistStore();
 
   const translations: Record<string, Record<string, string>> = { en, fr };
@@ -445,7 +519,7 @@ export default function ProductDetailPage() {
 
           {/*  Breadcrumbs  */}
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 sm:mb-10">
-            <Link href={`/${locale}`} className="hover:text-gray-700 transition-colors">Home</Link>
+            <Link href={`/${locale}/dashboard`} className="hover:text-gray-700 transition-colors">Home</Link>
             <span>/</span>
             <Link href={`/${locale}/products`} className="hover:text-gray-700 transition-colors">Shop</Link>
             {catName && <><span>/</span><span className="text-gray-500">{catName}</span></>}
@@ -542,14 +616,21 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {sizes.map(s => (
-                        <button key={s} onClick={() => setSelectedSize(s)}
-                          className={`min-w-12 py-2.5 px-3 text-center rounded-lg text-sm font-medium transition-all duration-200 ${selectedSize === s ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}>
+                      {SIZE_CHART.map(({ label: s }) => {
+                        const isAvailable = sizes.includes(s);
+                        const isSizeDisabled = outOfStock || !isAvailable;
+                        return (
+                        <button key={s} onClick={() => !isSizeDisabled && setSelectedSize(s)}
+                          disabled={isSizeDisabled}
+                          className={`min-w-12 py-2.5 px-3 text-center rounded-lg text-sm font-medium transition-all duration-200 ${isSizeDisabled ? 'bg-gray-100 text-gray-300 cursor-not-allowed relative overflow-hidden' : selectedSize === s ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}>
                           {s}
-                          {sizeDisplay(s) && <span className={`block text-[9px] mt-0.5 ${selectedSize === s ? 'text-gray-400' : 'text-gray-400'}`}>{sizeDisplay(s)}</span>}
+                          {sizeDisplay(s) && <span className={`block text-[9px] mt-0.5 ${isSizeDisabled ? 'text-gray-300' : selectedSize === s ? 'text-gray-400' : 'text-gray-400'}`}>{sizeDisplay(s)}</span>}
+                          {isSizeDisabled && <span className="absolute inset-0 flex items-center justify-center"><span className="block w-[120%] h-px bg-gray-300 rotate-[-20deg]" /></span>}
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
+                    {outOfStock && <p className="text-[11px] text-red-500 mt-2">All sizes are currently unavailable</p>}
                   </div>
                 )}
               </div>
@@ -571,11 +652,14 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <button ref={ctaRef} onClick={handleAddToCart} disabled={outOfStock || (currentProduct && isProductLoading(currentProduct.id))}
-                  className="w-full h-13 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 text-sm shadow-lg shadow-blue-600/25 hover:shadow-blue-700/30">
+                <button ref={ctaRef} onClick={handleAddToCart} disabled={outOfStock || (currentProduct && isProductLoading(currentProduct.id)) || (currentProduct && isInCart(currentProduct.id))}
+                  className="w-full h-13 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 text-sm shadow-lg shadow-gray-900/25 hover:shadow-black/30">
                   {currentProduct && isProductLoading(currentProduct.id) ? <>
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
                     Adding to Basket...
+                  </> : currentProduct && isInCart(currentProduct.id) ? <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
+                    In Basket
                   </> : <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     {outOfStock ? 'Out of Stock' : t('addToCart')}
@@ -765,9 +849,9 @@ export default function ProductDetailPage() {
               <p className="text-sm font-bold text-gray-900 truncate">{currentProduct.name}</p>
               <p className="text-sm font-semibold text-blue-600">{formatCurrency(currentProduct.price)}</p>
             </div>
-            <button onClick={handleAddToCart} disabled={currentProduct && isProductLoading(currentProduct.id)}
-              className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25 whitespace-nowrap">
-              {currentProduct && isProductLoading(currentProduct.id) ? 'Adding...' : 'Add to Basket'}
+            <button onClick={handleAddToCart} disabled={(currentProduct && isProductLoading(currentProduct.id)) || (currentProduct && isInCart(currentProduct.id))}
+              className="px-6 py-2.5 bg-gray-900 text-white font-semibold rounded-xl text-sm hover:bg-black transition-all shadow-lg shadow-gray-900/25 whitespace-nowrap">
+              {currentProduct && isProductLoading(currentProduct.id) ? 'Adding...' : currentProduct && isInCart(currentProduct.id) ? 'In Basket' : 'Add to Basket'}
             </button>
           </div>
         </div>

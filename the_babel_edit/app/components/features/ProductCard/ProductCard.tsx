@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { useCartStore, useWishlistStore, useProductStore, Product } from '@/app/store';
@@ -58,9 +57,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
       }
       
       // Final fallback to placeholder
-      return '/placeholder-product.jpg';
+      return '/placeholder-product.png';
     } catch (error) {
-      return product.imageUrl || '/placeholder-product.jpg';
+      return product.imageUrl || '/placeholder-product.png';
     }
   };
 
@@ -96,13 +95,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // Resolve image URL for display (handles relative /uploads/ paths & backend detection)
   const imageUrl = getImageUrl();
   const isBackendImage = isBackendImageUrl(imageUrl);
-  const displayImageUrl = resolveImageUrl(imageUrl, '/placeholder-product.jpg');
+  const displayImageUrl = resolveImageUrl(imageUrl, '/placeholder-product.png');
 
   // State for image load error fallback
   const [imageError, setImageError] = React.useState(false);
 
   const cardClasses = `
-    group/card border-0 rounded-xl overflow-hidden bg-white
+    group/card relative border-0 rounded-xl overflow-hidden bg-white
     shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)]
     transition-all duration-400 ease-out hover:-translate-y-1.5
     w-full h-full flex flex-col
@@ -111,8 +110,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     ${className}
   `;
   const imageContainerClasses = `
-    relative w-full overflow-hidden bg-gray-50
-    ${variant === 'small' ? 'h-40 md:h-32' : 'h-64 md:h-56'}
+    relative w-full overflow-hidden bg-white
+    aspect-3/4
     ${imageContainerClassName}
   `;
   const imageClasses = "object-cover group-hover:scale-105 transition-transform duration-500 ease-out";
@@ -154,49 +153,65 @@ const ProductCard: React.FC<ProductCardProps> = ({
           passHref
           onMouseEnter={handlePrefetch}
         >
-          <div className="cursor-pointer relative w-full h-full flex items-center justify-center bg-gray-100">
+          <div className="cursor-pointer relative w-full h-full flex items-center justify-center bg-white">
             {!imageError ? (
-              isBackendImage ? (
-                // Backend images: use regular <img> to avoid Next.js Image domain restrictions
-                <img
-                  src={displayImageUrl}
-                  alt={product.name}
-                  className={`absolute inset-0 w-full h-full ${imageClasses}`}
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <Image
-                  src={displayImageUrl}
-                  alt={product.name}
-                  fill
-                  className={imageClasses}
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  priority={false}
-                  onError={() => setImageError(true)}
-                />
-              )
+              <img
+                src={displayImageUrl}
+                alt={product.name}
+                className={`absolute inset-0 w-full h-full ${imageClasses}`}
+                loading="lazy"
+                onError={() => setImageError(true)}
+              />
             ) : (
-              <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 gap-2">
-                <div className="text-3xl text-gray-400">📷</div>
-                <p className="text-xs text-gray-500">Image unavailable</p>
+              <div className="flex flex-col items-center justify-center w-full h-full bg-gray-50 gap-1.5">
+                <div className="text-2xl text-gray-300">📷</div>
+                <p className="text-[10px] text-gray-400">No image</p>
               </div>
             )}
           </div>
         </Link>
+
+        {/* Add to Basket — hover-only overlay at bottom of image */}
+        <div className={`absolute bottom-0 left-0 right-0 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300 ease-out z-20 ${isInCart ? 'translate-y-0' : ''}`}>
+          <button
+            className={`w-full border-none py-0.5 cursor-pointer transition-colors duration-200
+                       flex items-center justify-center gap-1.5
+                       disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed
+                       text-[10px] md:text-[11px] font-semibold tracking-wider uppercase
+                       ${isInCart
+                         ? 'bg-[#0f172a] text-white'
+                         : 'bg-[#0f172a] text-white hover:bg-[#ef4444]'
+                       }`}
+            onClick={handleAddToCart}
+            disabled={isInCart || isOutOfStock || isAddingToCart}
+            title={isInCart ? 'Already in basket' : 'Add to basket'}
+          >
+            {isAddingToCart ? (
+              <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isInCart ? (
+              'In Basket'
+            ) : (
+              'Add to Basket'
+            )}
+          </button>
+        </div>
       </div>
       
-      <div className="px-3 pt-3 pb-3 md:px-4 md:pt-3.5 md:pb-4 flex flex-col gap-1.5 md:gap-2 grow">
+      <div className="px-2.5 pt-2 pb-2.5 md:px-3 md:pt-2.5 md:pb-3 flex flex-col gap-1 md:gap-1.5 grow">
         {/* Product Name */}
         <Link 
           href={`/${locale}/products/${product.id}`}
           className="no-underline"
           onMouseEnter={handlePrefetch}
         >
-          <h3 className="text-[13px] md:text-[15px] font-semibold text-[#0f172a] line-clamp-2 min-h-8 md:min-h-9 leading-snug tracking-tight
-                       group-hover/card:text-[#ef4444] transition-colors duration-300 cursor-pointer"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+          {/* <h3 className="text-[11px] md:text-[13px] font-semibold text-[#0f172a] line-clamp-2 min-h-6 md:min-h-7 leading-snug tracking-tight
+                       group-hover/card:text-[#ef4444] transition-colors duration-300 cursor-pointer">
               {product.name}
+          </h3> */}
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-gray-700 transition-colors">
+            {product.name}
           </h3>
+          
         </Link>
         
         {/* Description - hidden for cleaner card layout
@@ -209,53 +224,32 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Rating */}
         {product.avgRating > 0 && (
-          <div className="flex items-center gap-1 text-[11px] md:text-xs">
+          <div className="flex items-center gap-1 text-[10px] md:text-[11px]">
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <span key={i} className={`text-[10px] ${i < Math.round(product.avgRating) ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
+                <span key={i} className={`text-[9px] ${i < Math.round(product.avgRating) ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
               ))}
             </div>
             {product.reviewCount > 0 && <span className="text-[#94a3b8] ml-0.5">({product.reviewCount})</span>}
           </div>
         )}
         
-        {/* Price & Cart — pushed to bottom */}
-        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-100">
+        {/* Price */}
+        <div className="mt-auto pt-1.5 border-t border-gray-100">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[15px] md:text-base font-bold text-[#0f172a] tracking-tight">
+            <span className="text-[13px] md:text-sm font-bold text-[#0f172a] tracking-tight">
               ${Number(product.price).toFixed(2)}
             </span>
             {product.comparePrice && (
-              <span className="text-[11px] md:text-xs text-[#94a3b8] line-through font-normal">
+              <span className="text-[10px] md:text-[11px] text-[#94a3b8] line-through font-normal">
                 ${Number(product.comparePrice).toFixed(2)}
               </span>
             )}
+            
           </div>
-          
-          <button 
-            className={`shrink-0 border-none rounded-full px-3 py-1.5 md:px-4 md:py-2 cursor-pointer transition-all duration-300 ease-out
-                       flex items-center justify-center gap-1.5
-                       hover:-translate-y-0.5 hover:shadow-md
-                       disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none
-                       text-[10px] md:text-xs font-semibold tracking-wide uppercase whitespace-nowrap
-                       ${isInCart 
-                         ? 'bg-[#0f172a] text-white' 
-                         : 'bg-[#0f172a] text-white hover:bg-[#ef4444]'
-                       }`}
-            onClick={handleAddToCart}
-            disabled={isInCart || isOutOfStock || isAddingToCart}
-            title={isInCart ? 'Already in basket' : 'Add to basket'}
-          >
-            {isAddingToCart ? (
-              <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : isInCart ? (
-              'In Basket'
-            ) : (
-              'Add to Basket'
-            )}
-          </button>
         </div>
       </div>
+
     </div>
   );
 };

@@ -28,7 +28,7 @@ export const getCart = async (req, res) => {
       return res.json({ items: [], itemCount: 0, total: 0 });
     }
 
-    // Filter out items whose product was hard-deleted (product will be null)
+    // Filter out items whose product was hard-deleted 
     const validItems = cart.items.filter(item => item.product != null);
 
     // Calculate total (include all items — stock warnings are handled in the UI)

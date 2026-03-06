@@ -36,7 +36,6 @@ import Carousel from '@/app/components/features/Carousel/Carousel';
 import FeedbackCarousel from '@/app/components/features/FeedbackCarousel/FeedbackCarousel';
 import Footer from '@/app/components/features/Footer/Footer';
 import { useProductStore, useCartStore, useWishlistStore, Product } from '@/app/store';
-import { useAuth } from '@/app/context/AuthContext';
 import { apiRequest, API_ENDPOINTS } from '@/app/lib/api';
 
 const TextDivider = ({ text }: { text: string }) => (
@@ -112,7 +111,6 @@ const TransparentImageCard = ({ backgroundImage, title, subtitle, description, c
 const SquareProductCard = ({ product }: { product: Product }) => {
   const { addToCart } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
-  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string || 'en';
@@ -127,16 +125,6 @@ const SquareProductCard = ({ product }: { product: Product }) => {
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // Check if user is authenticated
-    if (!user) {
-      toast.error('Please sign in to add items to basket', {
-        duration: 3000,
-        position: 'top-right',
-      });
-      router.push(`/${locale}/auth/login`);
-      return;
-    }
 
     try {
       await addToCart(product.id, 1);
@@ -156,16 +144,6 @@ const SquareProductCard = ({ product }: { product: Product }) => {
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // Check if user is authenticated
-    if (!user) {
-      toast.error('Please sign in to add items to wishlist', {
-        duration: 3000,
-        position: 'top-right',
-      });
-      router.push(`/${locale}/auth/login`);
-      return;
-    }
 
     try {
       if (isProductInWishlist) {
@@ -196,22 +174,16 @@ const SquareProductCard = ({ product }: { product: Product }) => {
       {/* Square Image Container */}
       <div className="relative w-full aspect-square overflow-hidden">
         {(() => {
-          const imageUrl = product.imageUrl || product.images?.[0] || '/placeholder-product.jpg';
-          const isBackendUrl = isBackendImageUrl(imageUrl);
+          let imgs = product.images;
+          if (typeof imgs === 'string') { try { imgs = JSON.parse(imgs); } catch { imgs = []; } }
+          const imageUrl = (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) ? imgs[0] : product.imageUrl || '/placeholder-product.png';
 
-          return isBackendUrl ? (
+          return (
             <img
               src={imageUrl}
               alt={product.name || 'Product image'}
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-product.jpg'; }}
-            />
-          ) : (
-            <Image
-              src={imageUrl}
-              alt={product.name || 'Product image'}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-product.png'; }}
             />
           );
         })()}
@@ -247,8 +219,8 @@ const SquareProductCard = ({ product }: { product: Product }) => {
           }`} />
         </button>
 
-        {/* Quick Add to Basket — slides up from bottom on hover */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
+        {/* Quick Add to Basket — slides up from bottom on hover, stays visible if in cart */}
+        <div className={`absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out ${isProductInCart ? 'translate-y-0' : ''}`}>
           <button
             onClick={handleAddToCart}
             disabled={isProductInCart}

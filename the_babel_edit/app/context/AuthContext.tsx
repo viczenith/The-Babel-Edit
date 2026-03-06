@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { apiRequest, API_ENDPOINTS, setAuthToken, removeAuthToken, checkServerAvailability, getHealthUrl } from '@/app/lib/api';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { useCartStore } from '@/app/store/useCartStore';
+import { useWishlistStore } from '@/app/store/useWishlistStore';
 
 type Address = {
   id?: string;
@@ -251,6 +253,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUserData(response.user);
       setCookie('userRole', response.user.role, 7);
 
+      // Fetch cart and wishlist from backend after login
+      useCartStore.getState().fetchCart().catch(() => {});
+      useWishlistStore.getState().fetchWishlist().catch(() => {});
+
       toast.success("Login successful!");
 
       return { success: true, user: response.user };
@@ -278,6 +284,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       syncUserState(response.user);
       setUserData(response.user);
       setCookie('userRole', response.user.role, 7);
+
+      // Fetch cart and wishlist from backend after signup
+      useCartStore.getState().fetchCart().catch(() => {});
+      useWishlistStore.getState().fetchWishlist().catch(() => {});
 
       toast.success("Account created successfully!");
 
@@ -315,6 +325,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Logout API call failed - still clear local auth
     } finally {
       clearAuthData();
+      // Clear cart and wishlist state so stale data doesn't persist
+      useCartStore.setState({ items: [], totalItems: 0, totalAmount: 0 });
+      useWishlistStore.setState({ items: [] });
       router.push(`${getLocalePrefix()}/auth/login`);
     }
   };
